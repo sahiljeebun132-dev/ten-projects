@@ -1,0 +1,26 @@
+<%- include('partials/head', { title: title, description: siteDescription }) %>
+
+<section class="hero">
+  <h1><%= heading %></h1>
+  <p class="hero-sub"><%= subheading %></p>
+</section>
+
+<% if (popularTags && popularTags.length) { %>
+  <p class="tag-list tag-cloud">
+    <% popularTags.forEach(function (tag) { %><a class="tag" href="/tags/<%= tag.slug %>">#<%= tag.name %> <span class="tag-count"><%= tag.post_count %></span></a><% }); %>
+  </p>
+<% } %>
+
+<% if (!posts.length) { %>
+  <p class="empty">No published posts yet. <a href="/login">Sign in</a> to write the first one.</p>
+<% } %>
+
+<div class="post-grid">
+  <% posts.forEach(function (post) { %>
+    <%- include('partials/post-card', { post: post }) %>
+  <% }); %>
+</div>
+
+<%- include('partials/pagination', { page: page, pages: pages, baseUrl: '/' }) %>
+
+<%- include('partials/footer') %>

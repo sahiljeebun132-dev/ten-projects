@@ -1,0 +1,23 @@
+<%- include('partials/head', { title: title, description: 'Posts tagged ' + tag.name }) %>
+
+<section class="hero">
+  <p class="eyebrow">Tag archive</p>
+  <h1>#<%= tag.name %></h1>
+  <p class="hero-sub"><%= total %> published post<%= total === 1 ? '' : 's' %></p>
+</section>
+
+<% if (!posts.length) { %>
+  <p class="empty">Nothing published under this tag yet.</p>
+<% } %>
+
+<div class="post-grid">
+  <% posts.forEach(function (post) { %>
+    <%- include('partials/post-card', { post: post }) %>
+  <% }); %>
+</div>
+
+<%- include('partials/pagination', { page: page, pages: pages, baseUrl: '/tags/' + tag.slug }) %>
+
+<p><a href="/tags">← All tags</a></p>
+
+<%- include('partials/footer') %>

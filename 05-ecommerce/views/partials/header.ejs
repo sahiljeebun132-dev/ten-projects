@@ -1,0 +1,53 @@
+<div class="demo-banner" role="note">
+  <strong>Demo store.</strong> Northwind Goods is a fictional shop built for learning.
+  Checkout is <strong>simulated</strong> &mdash; no real payment is processed, no card is charged and no order is ever shipped.
+</div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/">
+      <img src="/img/logo.svg" alt="" width="34" height="34">
+      <span class="brand-text">
+        <span class="brand-name">Northwind Goods</span>
+        <span class="brand-tag">demo store</span>
+      </span>
+    </a>
+
+    <form class="search" action="/products" method="get" role="search">
+      <label class="sr-only" for="site-search">Search the demo catalogue</label>
+      <input id="site-search" type="search" name="q" placeholder="Search the demo catalogue&hellip;"
+             value="<%= (query && query.q) ? query.q : '' %>">
+      <button type="submit">Search</button>
+    </form>
+
+    <nav class="header-nav" aria-label="Account and basket">
+      <% if (user) { %>
+        <a href="/account">Account</a>
+        <% if (user.role === 'admin') { %><a href="/admin">Admin</a><% } %>
+        <form action="/logout" method="post" class="inline-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="linkish">Sign out</button>
+        </form>
+      <% } else { %>
+        <a href="/login">Sign in</a>
+        <a href="/register">Register</a>
+      <% } %>
+      <a class="cart-link" href="/cart">
+        Basket <span class="badge"><%= cartCount %></span>
+      </a>
+    </nav>
+  </div>
+
+  <nav class="category-bar" aria-label="Categories">
+    <div class="wrap">
+      <a href="/products" class="<%= currentPath === '/products' && !(query && query.category) ? 'active' : '' %>">All products</a>
+      <% navCategories.forEach(function (c) { %>
+        <a href="/products?category=<%= encodeURIComponent(c.slug) %>"
+           class="<%= (query && query.category) === c.slug ? 'active' : '' %>"><%= c.name %></a>
+      <% }); %>
+    </div>
+  </nav>
+</header>
+
+<main class="wrap page">
+  <%- include('flash') %>

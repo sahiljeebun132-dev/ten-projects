@@ -1,0 +1,14 @@
+<%- include('partials/head', { title: title }) %>
+
+<section class="hero">
+  <p class="eyebrow">Error <%= status %></p>
+  <h1><%= status === 404 ? 'Page not found' : 'Something went wrong' %></h1>
+  <p class="hero-sub"><%= message %></p>
+  <p><a class="btn" href="/">Back to the blog</a></p>
+</section>
+
+<% if (stack) { %>
+  <pre class="stack"><%= stack %></pre>
+<% } %>
+
+<%- include('partials/footer') %>

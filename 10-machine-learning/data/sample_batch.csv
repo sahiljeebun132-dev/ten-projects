@@ -1,0 +1,26 @@
+customer_id,tenure_months,monthly_charges,total_charges,contract_type,payment_method,internet_service,num_support_tickets,avg_monthly_usage_gb,has_streaming,is_senior,num_dependents,region,last_login_days,churn_risk_score_v0,account_flagged_for_review
+CUST-000001,7,71.89,475.69,Month-to-month,Electronic check,Fiber optic,1,281.8,1,0,1.0,East,4.0,7.75,0
+CUST-000002,59,92.94,5325.8,One year,Credit card (automatic),Fiber optic,2,547.8,1,0,1.0,East,6.0,62.92,0
+CUST-000003,48,70.55,3003.57,Two year,Bank transfer (automatic),DSL,0,98.8,1,0,1.0,South,6.0,11.5,1
+CUST-000004,11,70.28,717.84,Month-to-month,Credit card (automatic),DSL,0,228.2,1,0,1.0,South,22.0,51.64,0
+CUST-000005,27,79.67,2305.67,Month-to-month,Credit card (automatic),Fiber optic,2,290.7,0,0,1.0,North,9.0,6.83,0
+CUST-000006,5,86.68,398.24,Month-to-month,Electronic check,Fiber optic,1,280.7,1,0,1.0,South,4.0,4.22,0
+CUST-000007,10,49.47,472.99,One year,Electronic check,DSL,2,144.8,0,0,2.0,North,,70.89,0
+CUST-000008,52,95.5,5337.76,Month-to-month,Bank transfer (automatic),Fiber optic,0,913.1,1,0,2.0,West,26.0,50.34,0
+CUST-000009,10,71.87,662.47,One year,Mailed check,Fiber optic,0,478.4,0,0,1.0,East,8.0,21.7,0
+CUST-000010,15,56.63,979.69,Month-to-month,Electronic check,DSL,1,498.5,1,1,,North,10.0,82.89,0
+CUST-000011,7,87.45,658.97,Month-to-month,Credit card (automatic),Fiber optic,1,316.1,1,1,0.0,North,7.0,62.75,0
+CUST-000012,14,64.61,924.6,One year,Credit card (automatic),DSL,1,156.7,1,0,0.0,South,6.0,6.81,0
+CUST-000013,15,89.32,1171.4,Month-to-month,Electronic check,Fiber optic,1,580.1,1,1,1.0,North,9.0,5.8,0
+CUST-000014,55,83.45,4372.72,One year,Credit card (automatic),Fiber optic,0,536.0,1,0,0.0,West,14.0,13.24,0
+CUST-000015,9,92.19,901.46,One year,Credit card (automatic),Fiber optic,1,889.9,1,0,2.0,South,53.0,0.01,0
+CUST-000016,4,23.93,50.97,One year,Electronic check,No internet service,0,13.7,0,0,0.0,East,47.0,94.23,0
+CUST-000017,12,51.21,599.93,Month-to-month,Mailed check,DSL,0,176.5,1,0,1.0,North,7.0,28.13,0
+CUST-000018,5,51.47,262.6,Month-to-month,Electronic check,DSL,0,108.1,0,0,0.0,East,7.0,54.12,0
+CUST-000019,67,58.2,3901.98,One year,Mailed check,Fiber optic,0,504.9,0,0,0.0,South,0.0,72.74,0
+CUST-000020,36,24.32,892.65,Month-to-month,Bank transfer (automatic),No internet service,1,6.2,0,0,0.0,South,45.0,76.21,1
+CUST-000021,6,79.02,423.83,One year,Bank transfer (automatic),Fiber optic,0,301.3,1,0,0.0,West,26.0,67.63,0
+CUST-000022,7,70.42,445.86,Month-to-month,Mailed check,DSL,0,149.8,1,1,0.0,North,7.0,38.32,0
+CUST-000023,55,54.02,3077.32,Month-to-month,Electronic check,DSL,1,211.7,0,1,0.0,West,15.0,35.84,1
+CUST-000024,33,74.68,2285.66,Two year,Mailed check,Fiber optic,1,258.4,0,0,1.0,West,5.0,97.01,0
+CUST-000025,60,76.34,4354.41,Two year,Credit card (automatic),Fiber optic,0,220.0,0,0,2.0,East,0.0,3.17,0

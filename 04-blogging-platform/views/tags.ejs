@@ -1,0 +1,16 @@
+<%- include('partials/head', { title: title, description: 'Browse every tag on ' + siteTitle }) %>
+
+<section class="hero">
+  <h1>Tags</h1>
+  <p class="hero-sub">Browse posts by topic.</p>
+</section>
+
+<% if (!tags.length) { %>
+  <p class="empty">No tags yet.</p>
+<% } %>
+
+<p class="tag-list tag-cloud">
+  <% tags.forEach(function (tag) { %><a class="tag" href="/tags/<%= tag.slug %>">#<%= tag.name %> <span class="tag-count"><%= tag.post_count %></span></a><% }); %>
+</p>
+
+<%- include('partials/footer') %>

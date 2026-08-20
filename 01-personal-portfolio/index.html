@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Biraj Jeebun — Software Developer</title>
+  <meta name="description" content="Portfolio of Biraj Jeebun, a software developer building clean, accessible, well-tested software for the web." />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Biraj Jeebun — Software Developer" />
+  <meta property="og:description" content="Portfolio of Biraj Jeebun, a software developer building clean, accessible, well-tested software for the web." />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234f46e5'/%3E%3Ctext x='50' y='68' font-family='system-ui,sans-serif' font-size='52' font-weight='700' fill='white' text-anchor='middle'%3EBJ%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- ============ HEADER / NAV ============ -->
+  <header class="site-header" id="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#hero" aria-label="Biraj Jeebun — back to top">
+        <span class="brand-mark" aria-hidden="true">BJ</span>
+        <span class="brand-name">Biraj Jeebun</span>
+      </a>
+
+      <nav class="nav" id="primary-nav" aria-label="Primary">
+        <ul class="nav-list">
+          <li><a class="nav-link" href="#about">About</a></li>
+          <li><a class="nav-link" href="#skills">Skills</a></li>
+          <li><a class="nav-link" href="#projects">Projects</a></li>
+          <li><a class="nav-link" href="#experience">Experience</a></li>
+          <li><a class="nav-link" href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          class="icon-btn theme-toggle"
+          id="theme-toggle"
+          aria-label="Switch to dark theme"
+          aria-pressed="false"
+          title="Toggle colour theme"
+        >
+          <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="4.2"/>
+            <g class="sun-rays">
+              <line x1="12" y1="1.8" x2="12" y2="4"/>
+              <line x1="12" y1="20" x2="12" y2="22.2"/>
+              <line x1="1.8" y1="12" x2="4" y2="12"/>
+              <line x1="20" y1="12" x2="22.2" y2="12"/>
+              <line x1="4.8" y1="4.8" x2="6.4" y2="6.4"/>
+              <line x1="17.6" y1="17.6" x2="19.2" y2="19.2"/>
+              <line x1="4.8" y1="19.2" x2="6.4" y2="17.6"/>
+              <line x1="17.6" y1="6.4" x2="19.2" y2="4.8"/>
+            </g>
+          </svg>
+          <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"/>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="icon-btn nav-toggle"
+          id="nav-toggle"
+          aria-label="Open navigation menu"
+          aria-expanded="false"
+          aria-controls="primary-nav"
+        >
+          <span class="burger" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+  </header>
+
+  <div class="nav-overlay" id="nav-overlay" hidden></div>
+
+  <main id="main">
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <div class="hero-bg" aria-hidden="true">
+        <span class="blob blob-a"></span>
+        <span class="blob blob-b"></span>
+        <span class="grid-fade"></span>
+      </div>
+      <div class="container hero-inner">
+        <p class="hero-eyebrow reveal">
+          <span class="status-dot" aria-hidden="true"></span>
+          Available for new projects
+        </p>
+        <h1 class="hero-title reveal" id="hero-title">
+          Hi, I'm <span class="grad-text">Biraj Jeebun</span>.<br />
+          I build things for the web.
+        </h1>
+        <p class="hero-tagline reveal">
+          Software developer focused on clean architecture, accessible interfaces
+          and code that is pleasant to maintain.
+          <em>Replace with your own tagline.</em>
+        </p>
+        <div class="hero-cta reveal">
+          <a class="btn btn-primary" href="#projects">
+            View my work
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M5 12h13M13 6l6 6-6 6"/>
+            </svg>
+          </a>
+          <a class="btn btn-ghost" href="#contact">Get in touch</a>
+        </div>
+        <ul class="hero-stats reveal" aria-label="At a glance">
+          <li><strong>6</strong><span>Featured projects</span></li>
+          <li><strong>10+</strong><span>Technologies used</span></li>
+          <li><strong>100%</strong><span>Accessible by default</span></li>
+        </ul>
+      </div>
+      <a class="scroll-hint" href="#about" aria-label="Scroll to About section">
+        <span class="mouse" aria-hidden="true"><span></span></span>
+      </a>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="section" id="about" aria-labelledby="about-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">01 — About</p>
+          <h2 class="section-title" id="about-title">A little about me</h2>
+        </header>
+
+        <div class="about-grid">
+          <div class="about-copy reveal">
+            <p class="lead">
+              <em>Replace with your own bio.</em> A short, human paragraph about who you are,
+              what kind of problems you enjoy solving, and what you're looking for next.
+            </p>
+            <p>
+              <em>Replace with your own bio.</em> Use this second paragraph for the details —
+              the tools you reach for first, the kind of teams you work well with, and the
+              sort of work that makes you want to open the laptop on a Sunday.
+            </p>
+            <p>
+              <em>Replace with your own bio.</em> Close with something personal: what you do
+              away from the keyboard, or a cause, community or hobby that matters to you.
+            </p>
+            <ul class="about-facts">
+              <li><span class="fact-key">Focus</span><span class="fact-val">Web applications &amp; developer tooling</span></li>
+              <li><span class="fact-key">Location</span><span class="fact-val">Replace with your location</span></li>
+              <li><span class="fact-key">Languages</span><span class="fact-val">Replace with your languages</span></li>
+              <li><span class="fact-key">Currently</span><span class="fact-val">Replace with what you're learning</span></li>
+            </ul>
+          </div>
+
+          <aside class="about-card reveal" aria-label="Profile card">
+            <div class="avatar" aria-hidden="true">
+              <svg viewBox="0 0 120 120" role="img">
+                <defs>
+                  <linearGradient id="avaGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="var(--accent)"/>
+                    <stop offset="100%" stop-color="var(--accent-2)"/>
+                  </linearGradient>
+                </defs>
+                <rect width="120" height="120" rx="28" fill="url(#avaGrad)"/>
+                <circle cx="60" cy="48" r="19" fill="rgba(255,255,255,.92)"/>
+                <path d="M24 104c4-19 18-28 36-28s32 9 36 28Z" fill="rgba(255,255,255,.92)"/>
+              </svg>
+            </div>
+            <p class="about-card-name">Biraj Jeebun</p>
+            <p class="about-card-role">Software Developer</p>
+            <p class="about-card-note">
+              Add a photo by replacing the SVG in <code>index.html</code>
+              with an <code>&lt;img&gt;</code>.
+            </p>
+            <ul class="social-list">
+              <li>
+                <a class="social-link" href="#" aria-label="GitHub profile (replace with your link)">
+                  <svg class="icon icon-filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.36 1.09 2.93.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/>
+                  </svg>
+                  <span>GitHub</span>
+                </a>
+              </li>
+              <li>
+                <a class="social-link" href="#" aria-label="LinkedIn profile (replace with your link)">
+                  <svg class="icon icon-filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3zM9.5 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.76V21h-4v-5.6c0-1.34-.03-3.06-1.9-3.06-1.9 0-2.2 1.45-2.2 2.96V21h-4Z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+              </li>
+              <li>
+                <a class="social-link" href="mailto:you@example.com" aria-label="Email (replace with your address)">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/>
+                    <path d="m3 6.5 9 6.2 9-6.2"/>
+                  </svg>
+                  <span>Email</span>
+                </a>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SKILLS ============ -->
+    <section class="section section-alt" id="skills" aria-labelledby="skills-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">02 — Skills</p>
+          <h2 class="section-title" id="skills-title">Things I work with</h2>
+          <p class="section-sub">
+            Grouped by where they sit in the stack. Edit the
+            <code>SKILL_GROUPS</code> array in <code>js/main.js</code>.
+          </p>
+        </header>
+        <div class="skills-grid" id="skills-grid">
+          <!-- rendered by js/main.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROJECTS ============ -->
+    <section class="section" id="projects" aria-labelledby="projects-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">03 — Projects</p>
+          <h2 class="section-title" id="projects-title">Selected work</h2>
+          <p class="section-sub">
+            Six sample projects. Swap them for your own by editing the
+            <code>PROJECTS</code> array in <code>js/main.js</code>.
+          </p>
+        </header>
+        <ul class="projects-grid" id="projects-grid">
+          <!-- rendered by js/main.js -->
+        </ul>
+        <noscript>
+          <p class="noscript-note">
+            This portfolio renders its project and skill cards with JavaScript.
+            Please enable JavaScript to see them.
+          </p>
+        </noscript>
+      </div>
+    </section>
+
+    <!-- ============ EXPERIENCE ============ -->
+    <section class="section section-alt" id="experience" aria-labelledby="experience-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">04 — Experience</p>
+          <h2 class="section-title" id="experience-title">Experience &amp; education</h2>
+          <p class="section-sub">
+            Placeholder entries — edit the <code>TIMELINE</code> array in
+            <code>js/main.js</code> with your own history.
+          </p>
+        </header>
+        <ol class="timeline" id="timeline">
+          <!-- rendered by js/main.js -->
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="section" id="contact" aria-labelledby="contact-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">05 — Contact</p>
+          <h2 class="section-title" id="contact-title">Let's build something</h2>
+          <p class="section-sub">
+            Got a role, a project or just a question? Send a note and I'll reply.
+          </p>
+        </header>
+
+        <div class="contact-grid">
+          <div class="contact-aside reveal">
+            <h3 class="contact-aside-title">Other ways to reach me</h3>
+            <ul class="contact-methods">
+              <li>
+                <span class="cm-icon" aria-hidden="true">
+                  <svg class="icon" viewBox="0 0 24 24" focusable="false">
+                    <rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/>
+                    <path d="m3 6.5 9 6.2 9-6.2"/>
+                  </svg>
+                </span>
+                <span class="cm-body">
+                  <span class="cm-label">Email</span>
+                  <a href="mailto:you@example.com">you@example.com</a>
+                  <small>Replace with your address</small>
+                </span>
+              </li>
+              <li>
+                <span class="cm-icon" aria-hidden="true">
+                  <svg class="icon icon-filled" viewBox="0 0 24 24" focusable="false">
+                    <path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.36 1.09 2.93.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/>
+                  </svg>
+                </span>
+                <span class="cm-body">
+                  <span class="cm-label">GitHub</span>
+                  <a href="#">github.com/your-handle</a>
+                  <small>Replace with your profile</small>
+                </span>
+              </li>
+              <li>
+                <span class="cm-icon" aria-hidden="true">
+                  <svg class="icon" viewBox="0 0 24 24" focusable="false">
+                    <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/>
+                    <circle cx="12" cy="10" r="2.6"/>
+                  </svg>
+                </span>
+                <span class="cm-body">
+                  <span class="cm-label">Location</span>
+                  <span>Replace with your location</span>
+                  <small>Open to remote work</small>
+                </span>
+              </li>
+            </ul>
+            <p class="contact-note">
+              This form is front-end only — it validates in the browser and shows a
+              success state. Wire it to a backend or a form service when you deploy.
+            </p>
+          </div>
+
+          <form class="contact-form reveal" id="contact-form" novalidate>
+            <div class="field">
+              <label for="name">Name <span class="req" aria-hidden="true">*</span></label>
+              <input
+                type="text" id="name" name="name" autocomplete="name"
+                required minlength="2" placeholder="Ada Lovelace"
+                aria-describedby="name-error"
+              />
+              <p class="error-msg" id="name-error" role="alert" aria-live="polite"></p>
+            </div>
+
+            <div class="field">
+              <label for="email">Email <span class="req" aria-hidden="true">*</span></label>
+              <input
+                type="email" id="email" name="email" autocomplete="email"
+                required placeholder="you@example.com"
+                aria-describedby="email-error"
+              />
+              <p class="error-msg" id="email-error" role="alert" aria-live="polite"></p>
+            </div>
+
+            <div class="field">
+              <label for="subject">Subject</label>
+              <input
+                type="text" id="subject" name="subject"
+                placeholder="Project enquiry"
+                aria-describedby="subject-error"
+              />
+              <p class="error-msg" id="subject-error" role="alert" aria-live="polite"></p>
+            </div>
+
+            <div class="field">
+              <label for="message">Message <span class="req" aria-hidden="true">*</span></label>
+              <textarea
+                id="message" name="message" rows="6" required minlength="10"
+                placeholder="Tell me a little about what you have in mind…"
+                aria-describedby="message-error message-count"
+              ></textarea>
+              <div class="field-foot">
+                <p class="error-msg" id="message-error" role="alert" aria-live="polite"></p>
+                <p class="char-count" id="message-count">0 / 1000</p>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
+              <span class="btn-label">Send message</span>
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 12h14M13 6l6 6-6 6"/>
+              </svg>
+            </button>
+
+            <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+
+            <div class="form-success" id="form-success" hidden>
+              <span class="success-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+              </span>
+              <h3>Message sent</h3>
+              <p>Thanks for reaching out — I'll get back to you shortly.</p>
+              <button type="button" class="btn btn-ghost" id="send-another">Send another message</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">BJ</span>
+        <div>
+          <p class="footer-name">Biraj Jeebun</p>
+          <p class="footer-role">Software Developer</p>
+        </div>
+      </div>
+
+      <nav class="footer-nav" aria-label="Footer">
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#skills">Skills</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#experience">Experience</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <p class="footer-legal">
+        &copy; <span id="year">2026</span> Biraj Jeebun. Built as a static site — no
+        frameworks, no trackers.
+      </p>
+    </div>
+  </footer>
+
+  <button type="button" class="back-to-top" id="back-to-top" aria-label="Back to top" title="Back to top">
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 19V5M6 11l6-6 6 6"/>
+    </svg>
+  </button>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

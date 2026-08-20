@@ -1,0 +1,88 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Checkout</h1>
+<%- include('../partials/steps', { step: step }) %>
+
+<div class="demo-callout">
+  <h2>Demo checkout &mdash; no real payment is processed</h2>
+  <p>Nothing you enter here reaches a payment provider, a courier or a merchant. Use made-up details.</p>
+</div>
+
+<% if (errors.length) { %>
+  <ul class="errors"><% errors.forEach(function (e) { %><li><%= e %></li><% }); %></ul>
+<% } %>
+
+<div class="checkout-layout">
+  <section class="panel">
+    <h2 style="margin-top:0">Step 1 &mdash; delivery address</h2>
+
+    <% if (savedAddresses.length) { %>
+      <h3 style="font-size:1rem">Use a saved address</h3>
+      <% savedAddresses.forEach(function (a) { %>
+        <form action="/checkout/address" method="post" class="method-option" style="align-items:center">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="use_address_id" value="<%= a.id %>">
+          <div>
+            <strong><%= a.label %></strong><% if (a.is_default) { %> <span class="status">Default</span><% } %><br>
+            <span class="muted"><%= a.full_name %>, <%= a.line1 %><%= a.line2 ? ', ' + a.line2 : '' %>, <%= a.city %>, <%= a.postal_code %>, <%= a.country %></span>
+          </div>
+          <button class="btn btn-small" type="submit" style="margin-left:auto">Use this</button>
+        </form>
+      <% }); %>
+      <h3 style="font-size:1rem;margin-top:22px">Or enter a new address</h3>
+    <% } %>
+
+    <form action="/checkout/address" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="email">Email (for the demo receipt)</label>
+        <input id="email" type="email" name="email" value="<%= form.email || '' %>" required>
+      </div>
+      <div class="field">
+        <label for="ship_name">Recipient name</label>
+        <input id="ship_name" type="text" name="ship_name" value="<%= form.ship_name || '' %>" required>
+      </div>
+      <div class="field">
+        <label for="ship_line1">Address line 1</label>
+        <input id="ship_line1" type="text" name="ship_line1" value="<%= form.ship_line1 || '' %>" required>
+      </div>
+      <div class="field">
+        <label for="ship_line2">Address line 2 (optional)</label>
+        <input id="ship_line2" type="text" name="ship_line2" value="<%= form.ship_line2 || '' %>">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="ship_city">City</label>
+          <input id="ship_city" type="text" name="ship_city" value="<%= form.ship_city || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="ship_region">County / State</label>
+          <input id="ship_region" type="text" name="ship_region" value="<%= form.ship_region || '' %>">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="ship_postal">Postal / ZIP code</label>
+          <input id="ship_postal" type="text" name="ship_postal" value="<%= form.ship_postal || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="ship_country">Country code</label>
+          <input id="ship_country" type="text" name="ship_country" value="<%= form.ship_country || 'US' %>" maxlength="2" required>
+          <p class="hint">Two letters, e.g. US or GB.</p>
+        </div>
+      </div>
+      <% if (user) { %>
+        <div class="field">
+          <label><input type="checkbox" name="save_address" value="1"> Save this address to my demo account</label>
+        </div>
+      <% } %>
+      <button class="btn" type="submit">Continue to delivery</button>
+      <a class="btn btn-ghost" href="/cart">Back to basket</a>
+    </form>
+  </section>
+
+  <%- include('../partials/order-summary', { items: items, totals: totals }) %>
+</div>
+
+<%- include('../partials/footer') %>

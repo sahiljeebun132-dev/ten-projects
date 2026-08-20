@@ -1,0 +1,71 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Checkout</h1>
+<%- include('../partials/steps', { step: step }) %>
+
+<div class="demo-callout">
+  <h2>Demo checkout &mdash; no real payment is processed</h2>
+  <p>
+    This form is a <strong>simulation</strong>. It is not connected to any payment provider, no request leaves this
+    server, and no money can move. The card number is checked against a short list of public test numbers and is
+    then discarded &mdash; only a fake brand and the last four digits of the test number are stored on the demo order.
+  </p>
+  <p><strong>Never type a real card number into this form.</strong> Use the test card <code><%= testCard %></code>.</p>
+</div>
+
+<% if (errors.length) { %>
+  <ul class="errors"><% errors.forEach(function (e) { %><li><%= e %></li><% }); %></ul>
+<% } %>
+
+<div class="checkout-layout">
+  <section class="panel">
+    <h2 style="margin-top:0">Step 3 &mdash; simulated payment</h2>
+
+    <div class="fake-card" aria-hidden="true">
+      <div class="fake-card-brand">Northwind Demo Card &middot; not a real card</div>
+      <div class="fake-card-number"><%= testCard %></div>
+      <div style="margin-top:10px;font-size:.8rem;opacity:.85">EXP 12/34 &middot; CVC 123 &middot; SIMULATED</div>
+    </div>
+
+    <form class="card-form" action="/checkout/payment" method="post" autocomplete="off">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="card_name">Name on card</label>
+        <input id="card_name" type="text" name="card_name" value="<%= form.card_name || '' %>" required autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="card_number">Test card number</label>
+        <input id="card_number" type="text" name="card_number" data-card-number inputmode="numeric"
+               placeholder="<%= testCard %>" required autocomplete="off">
+        <p class="hint">Only public test numbers are accepted. <code><%= testCard %></code> is approved;
+          <code>4000 0000 0000 0002</code> simulates a decline.</p>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="card_expiry">Expiry (MM/YY)</label>
+          <input id="card_expiry" type="text" name="card_expiry" data-card-expiry placeholder="12/34"
+                 value="<%= form.card_expiry || '' %>" required autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="card_cvc">Security code</label>
+          <input id="card_cvc" type="text" name="card_cvc" inputmode="numeric" placeholder="123" required autocomplete="off">
+        </div>
+      </div>
+
+      <p>
+        <button class="btn btn-ghost btn-small" type="button" data-fill-demo-card>Fill in the demo test card</button>
+      </p>
+
+      <button class="btn btn-block" type="submit">Place demo order (<%= money(totals.total_cents) %> &mdash; not charged)</button>
+      <p class="muted" style="font-size:.84rem">
+        Placing the order writes a row to the demo database and reduces demo stock. That is all that happens.
+      </p>
+      <a class="btn btn-ghost btn-block" href="/checkout/shipping">Back to delivery options</a>
+    </form>
+  </section>
+
+  <%- include('../partials/order-summary', { items: items, totals: totals }) %>
+</div>
+
+<%- include('../partials/footer') %>

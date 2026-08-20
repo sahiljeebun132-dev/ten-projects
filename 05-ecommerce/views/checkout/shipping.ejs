@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Checkout</h1>
+<%- include('../partials/steps', { step: step }) %>
+
+<div class="demo-callout">
+  <h2>Demo checkout &mdash; no real payment is processed</h2>
+  <p>These delivery options are fictional. Nothing will be dispatched.</p>
+</div>
+
+<div class="checkout-layout">
+  <section class="panel">
+    <h2 style="margin-top:0">Step 2 &mdash; delivery method</h2>
+    <p class="muted">
+      Delivering to <strong><%= address.ship_name %></strong>, <%= address.ship_line1 %>, <%= address.ship_city %>,
+      <%= address.ship_postal %>, <%= address.ship_country %>
+      &middot; <a href="/checkout/address">change</a>
+    </p>
+
+    <form action="/checkout/shipping" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% Object.keys(methods).forEach(function (key) { var m = methods[key]; %>
+        <label class="method-option">
+          <input type="radio" name="shipping_method" value="<%= m.code %>" <%= selected === m.code ? 'checked' : '' %> required>
+          <span>
+            <strong><%= m.label %></strong> &mdash; <%= m.eta %><br>
+            <span class="muted"><%= m.note %></span>
+          </span>
+          <span class="method-price">
+            <% if (m.code === 'standard' && totals.subtotal_cents - totals.discount_cents >= totals.freeShippingThreshold_cents) { %>
+              Free
+            <% } else { %>
+              <%= m.price_cents === 0 ? 'Free' : money(m.price_cents) %>
+            <% } %>
+          </span>
+        </label>
+      <% }); %>
+      <button class="btn" type="submit">Continue to demo payment</button>
+      <a class="btn btn-ghost" href="/checkout/address">Back</a>
+    </form>
+  </section>
+
+  <%- include('../partials/order-summary', { items: items, totals: totals }) %>
+</div>
+
+<%- include('../partials/footer') %>

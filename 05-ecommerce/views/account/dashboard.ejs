@@ -1,0 +1,62 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Hello, <%= user.name %></h1>
+<p class="muted">This is your demo account on a demo store. Orders here are simulated.</p>
+
+<div class="admin-nav">
+  <a class="active" href="/account">Overview</a>
+  <a href="/account/orders">Order history</a>
+  <a href="/account/addresses">Addresses</a>
+  <% if (user.role === 'admin') { %><a href="/admin">Admin area</a><% } %>
+</div>
+
+<div class="stat-grid">
+  <div class="stat"><div class="stat-value"><%= orders.length %></div><div class="stat-label">Recent orders</div></div>
+  <div class="stat"><div class="stat-value"><%= addresses.length %></div><div class="stat-label">Saved addresses</div></div>
+  <div class="stat"><div class="stat-value"><%= reviewCount %></div><div class="stat-label">Reviews written</div></div>
+  <div class="stat"><div class="stat-value"><%= user.role %></div><div class="stat-label">Account role</div></div>
+</div>
+
+<section class="panel">
+  <h2 style="margin-top:0">Latest demo orders</h2>
+  <% if (!orders.length) { %>
+    <p class="muted">No orders yet. <a href="/products">Browse the demo catalogue</a> and try the simulated checkout.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Order</th><th>Placed</th><th>Items</th><th>Status</th><th class="num">Total</th><th></th></tr></thead>
+        <tbody>
+          <% orders.forEach(function (o) { %>
+            <tr>
+              <td><code><%= o.order_number %></code></td>
+              <td><%= String(o.placed_at).slice(0, 16) %></td>
+              <td><%= o.item_count %></td>
+              <td><span class="status status-<%= o.status %>"><%= o.status %></span></td>
+              <td class="num"><%= money(o.total_cents) %></td>
+              <td><a href="/account/orders/<%= o.order_number %>">View</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<section class="panel">
+  <h2 style="margin-top:0">Default address</h2>
+  <% if (!addresses.length) { %>
+    <p class="muted">No addresses saved. <a href="/account/addresses">Add one</a>.</p>
+  <% } else { var a = addresses[0]; %>
+    <p style="margin:0">
+      <strong><%= a.label %></strong><br>
+      <%= a.full_name %><br>
+      <%= a.line1 %><% if (a.line2) { %><br><%= a.line2 %><% } %><br>
+      <%= a.city %><% if (a.region) { %>, <%= a.region %><% } %><br>
+      <%= a.postal_code %> &middot; <%= a.country %>
+    </p>
+    <p style="margin-top:12px"><a href="/account/addresses">Manage addresses</a></p>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>

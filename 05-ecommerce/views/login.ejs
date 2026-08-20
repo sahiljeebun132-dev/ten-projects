@@ -1,0 +1,34 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<div style="max-width:440px;margin:0 auto">
+  <h1>Sign in</h1>
+  <p class="muted">Demo accounts only &mdash; do not reuse a real password here.</p>
+
+  <% if (errors.length) { %>
+    <ul class="errors"><% errors.forEach(function (e) { %><li><%= e %></li><% }); %></ul>
+  <% } %>
+
+  <form class="panel" action="/login" method="post">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="<%= form.email || '' %>" required autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required autocomplete="current-password">
+    </div>
+    <button class="btn btn-block" type="submit">Sign in</button>
+  </form>
+
+  <div class="demo-callout" style="margin-top:20px">
+    <h2>Demo logins</h2>
+    <p>Customer: <code>customer@example.com</code> / <code>customer123</code></p>
+    <p>Admin: <code>admin@example.com</code> / <code>admin123</code></p>
+  </div>
+
+  <p>No account? <a href="/register">Create a demo account</a>.</p>
+</div>
+
+<%- include('partials/footer') %>

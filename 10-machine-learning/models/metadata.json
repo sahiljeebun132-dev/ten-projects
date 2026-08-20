@@ -1,0 +1,239 @@
+{
+  "model_name": "stacking_ensemble",
+  "model_class": "StackingClassifier",
+  "training_date": "2026-08-20",
+  "run_id": "20260820T164729Z",
+  "sklearn_version": "1.8.0",
+  "numpy_version": "2.4.4",
+  "pandas_version": "3.0.2",
+  "python_version": "3.11.15",
+  "random_seed": 20250820,
+  "raw_feature_columns": [
+    "tenure_months",
+    "monthly_charges",
+    "total_charges",
+    "num_support_tickets",
+    "avg_monthly_usage_gb",
+    "num_dependents",
+    "last_login_days",
+    "churn_risk_score_v0",
+    "contract_type",
+    "payment_method",
+    "internet_service",
+    "region",
+    "has_streaming",
+    "is_senior",
+    "account_flagged_for_review"
+  ],
+  "numeric_features": [
+    "tenure_months",
+    "monthly_charges",
+    "total_charges",
+    "num_support_tickets",
+    "avg_monthly_usage_gb",
+    "num_dependents",
+    "last_login_days",
+    "churn_risk_score_v0"
+  ],
+  "categorical_features": [
+    "contract_type",
+    "payment_method",
+    "internet_service",
+    "region",
+    "has_streaming",
+    "is_senior",
+    "account_flagged_for_review"
+  ],
+  "engineered_features": [
+    "charges_per_tenure_month",
+    "tickets_per_tenure_year",
+    "usage_z_by_contract",
+    "tenure_bucket"
+  ],
+  "model_feature_names": [
+    "tenure_months",
+    "monthly_charges",
+    "total_charges",
+    "num_support_tickets",
+    "avg_monthly_usage_gb",
+    "num_dependents",
+    "last_login_days",
+    "churn_risk_score_v0",
+    "charges_per_tenure_month",
+    "tickets_per_tenure_year",
+    "usage_z_by_contract",
+    "contract_type_Month-to-month",
+    "contract_type_One year",
+    "contract_type_Two year",
+    "payment_method_Bank transfer (automatic)",
+    "payment_method_Credit card (automatic)",
+    "payment_method_Electronic check",
+    "payment_method_Mailed check",
+    "internet_service_DSL",
+    "internet_service_Fiber optic",
+    "internet_service_No internet service",
+    "region_East",
+    "region_North",
+    "region_South",
+    "region_West",
+    "has_streaming_0",
+    "has_streaming_1",
+    "is_senior_0",
+    "is_senior_1",
+    "account_flagged_for_review_0",
+    "account_flagged_for_review_1",
+    "tenure_bucket_0-6m",
+    "tenure_bucket_13-24m",
+    "tenure_bucket_25-48m",
+    "tenure_bucket_49m+",
+    "tenure_bucket_7-12m"
+  ],
+  "n_model_features": 36,
+  "best_params": {
+    "final_estimator__C": 3.214343,
+    "final_estimator__class_weight": null
+  },
+  "chosen_threshold": 0.29,
+  "threshold_rule": "maximise expected value on out-of-fold train+val predictions under the cost matrix below; among thresholds within one standard error of the maximum, take the one closest to the analytical break-even p* = C / (s * V)",
+  "analytical_break_even_threshold": 0.2857142857142857,
+  "cost_matrix": {
+    "value_of_retained_customer": 500.0,
+    "retention_offer_cost": 50.0,
+    "retention_success_rate": 0.35
+  },
+  "class_balance": {
+    "train": {
+      "n": 9000,
+      "positives": 2390,
+      "negatives": 6610,
+      "churn_rate": 0.26555555555555554,
+      "imbalance_ratio": 2.7656903765690375
+    },
+    "val": {
+      "n": 3000,
+      "positives": 797,
+      "negatives": 2203,
+      "churn_rate": 0.26566666666666666,
+      "imbalance_ratio": 2.764115432873275
+    },
+    "test": {
+      "n": 3000,
+      "positives": 797,
+      "negatives": 2203,
+      "churn_rate": 0.26566666666666666,
+      "imbalance_ratio": 2.764115432873275
+    }
+  },
+  "cv_metrics": {
+    "folds": 5,
+    "roc_auc": 0.8678457263307149,
+    "pr_auc": 0.7132676503763211
+  },
+  "validation_metrics": {
+    "roc_auc": 0.8592640012393276,
+    "pr_auc": 0.6958579900592934,
+    "brier": 0.12978852564649962
+  },
+  "oof_trainval_metrics": {
+    "accuracy": 0.7925,
+    "precision": 0.5851037851037851,
+    "recall": 0.7518042045811107,
+    "f1": 0.6580609722603681,
+    "roc_auc": 0.8648303553337482,
+    "pr_auc": 0.7065637309598308,
+    "brier": 0.1267626117069244
+  },
+  "oof_trainval_expected_value": {
+    "threshold": 0.29,
+    "tp": 2396,
+    "fp": 1699,
+    "fn": 791,
+    "tn": 7114,
+    "n_contacted": 4095,
+    "expected_value": -1378950.0,
+    "ev_per_customer": -114.9125,
+    "ev_per_customer_se": 1.625551438774703,
+    "uplift_vs_do_nothing": 214550.0,
+    "uplift_vs_contact_all": 256825.0,
+    "ev_do_nothing": -1593500.0,
+    "ev_contact_all": -1635775.0
+  },
+  "model_comparison": [
+    {
+      "model": "stacking_ensemble",
+      "cv_roc_auc": 0.8678457263307149,
+      "cv_roc_auc_std": 0.004100492731473942,
+      "cv_pr_auc": 0.7132676503763211,
+      "val_roc_auc": 0.8592640012393276,
+      "val_pr_auc": 0.6958579900592934,
+      "val_brier": 0.12978852564649962,
+      "val_f1_at_0.5": 0.6202277294038848,
+      "val_best_threshold": 0.29,
+      "val_ev_per_customer": -115.35833333333333,
+      "search_seconds": 203.8,
+      "best_params": "{\"final_estimator__C\": 3.214343, \"final_estimator__class_weight\": null}"
+    },
+    {
+      "model": "hist_gradient_boosting",
+      "cv_roc_auc": 0.8659913659410428,
+      "cv_roc_auc_std": 0.0037078448916561977,
+      "cv_pr_auc": 0.7089212956776005,
+      "val_roc_auc": 0.8584421494357815,
+      "val_pr_auc": 0.6926928115144843,
+      "val_brier": 0.1291168049760752,
+      "val_f1_at_0.5": 0.6035182679296346,
+      "val_best_threshold": 0.29,
+      "val_ev_per_customer": -115.10833333333333,
+      "search_seconds": 42.4,
+      "best_params": "{\"l2_regularization\": 0.001228, \"learning_rate\": 0.017836, \"max_features\": 0.829472, \"max_iter\": 450, \"max_leaf_nodes\": 14, \"min_samples_leaf\": 59}"
+    },
+    {
+      "model": "random_forest",
+      "cv_roc_auc": 0.8629289335924394,
+      "cv_roc_auc_std": 0.0035687195811573017,
+      "cv_pr_auc": 0.6995168148424294,
+      "val_roc_auc": 0.8558154131101026,
+      "val_pr_auc": 0.6920052640664929,
+      "val_brier": 0.15263707655603187,
+      "val_f1_at_0.5": 0.6438923395445134,
+      "val_best_threshold": 0.29,
+      "val_ev_per_customer": -117.55833333333334,
+      "search_seconds": 175.1,
+      "best_params": "{\"class_weight\": \"balanced\", \"max_depth\": 7, \"max_features\": 0.4, \"min_samples_leaf\": 22, \"n_estimators\": 271}"
+    },
+    {
+      "model": "gradient_boosting",
+      "cv_roc_auc": 0.8681829546965103,
+      "cv_roc_auc_std": 0.004683645744661798,
+      "cv_pr_auc": 0.7125513686871636,
+      "val_roc_auc": 0.8589917592697536,
+      "val_pr_auc": 0.6909648430052971,
+      "val_brier": 0.12934773682033227,
+      "val_f1_at_0.5": 0.5993079584775086,
+      "val_best_threshold": 0.29,
+      "val_ev_per_customer": -115.15833333333333,
+      "search_seconds": 103.4,
+      "best_params": "{\"learning_rate\": 0.05116, \"max_depth\": 2, \"min_samples_leaf\": 17, \"n_estimators\": 365, \"subsample\": 0.799203}"
+    },
+    {
+      "model": "logistic_regression",
+      "cv_roc_auc": 0.8670791687502769,
+      "cv_roc_auc_std": 0.005591291463977455,
+      "cv_pr_auc": 0.7118069285532009,
+      "val_roc_auc": 0.8580406210078535,
+      "val_pr_auc": 0.6862682644495233,
+      "val_brier": 0.12955678448245678,
+      "val_f1_at_0.5": 0.606726149622512,
+      "val_best_threshold": 0.29,
+      "val_ev_per_customer": -115.225,
+      "search_seconds": 37.9,
+      "best_params": "{\"C\": 0.458748, \"class_weight\": null, \"l1_ratio\": 0.5}"
+    }
+  ],
+  "train_duration_sec": 710.4,
+  "artifacts": {
+    "model": "models/churn_model.joblib",
+    "background": "models/background.joblib",
+    "experiments": "reports/experiments.csv"
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "model_name": "stacking_ensemble",
+  "threshold": 0.29,
+  "n_test": 3000,
+  "test_churn_rate": 0.26566666666666666,
+  "accuracy": 0.7893333333333333,
+  "precision": 0.5824175824175825,
+  "recall": 0.7314930991217063,
+  "f1": 0.6484983314794216,
+  "roc_auc": 0.8643648361336855,
+  "pr_auc": 0.7184954631498257,
+  "brier": 0.12476553238616486,
+  "log_loss": 0.39484998364463997,
+  "confusion_matrix": {
+    "tn": 1785,
+    "fp": 418,
+    "fn": 214,
+    "tp": 583
+  },
+  "at_threshold_0.5": {
+    "accuracy": 0.8276666666666667,
+    "precision": 0.7114803625377644,
+    "recall": 0.5909661229611042,
+    "f1": 0.6456477039067855
+  },
+  "expected_value": {
+    "threshold": 0.29,
+    "tp": 583,
+    "fp": 418,
+    "fn": 214,
+    "tn": 1785,
+    "n_contacted": 1001,
+    "expected_value": -346525.0,
+    "ev_per_customer": -115.50833333333334,
+    "ev_per_customer_se": 3.2750746918433977,
+    "uplift_vs_do_nothing": 51975.0,
+    "uplift_vs_contact_all": 62500.0,
+    "ev_do_nothing": -398500.0,
+    "ev_contact_all": -409025.0
+  },
+  "cost_assumptions": {
+    "value_of_retained_customer": 500.0,
+    "retention_offer_cost": 50.0,
+    "retention_success_rate": 0.35
+  },
+  "test_optimal_threshold": 0.33,
+  "test_optimal_ev_per_customer": -115.24166666666666,
+  "top_features_permutation": [
+    {
+      "feature": "tenure_months",
+      "importance_mean": 0.17977118290274857,
+      "importance_std": 0.005982983535237384
+    },
+    {
+      "feature": "contract_type",
+      "importance_mean": 0.1097520291424206,
+      "importance_std": 0.006913002765814926
+    },
+    {
+      "feature": "num_support_tickets",
+      "importance_mean": 0.013176753383517661,
+      "importance_std": 0.0009508616747780081
+    },
+    {
+      "feature": "monthly_charges",
+      "importance_mean": 0.011780231815745626,
+      "importance_std": 0.0020450818509203904
+    },
+    {
+      "feature": "last_login_days",
+      "importance_mean": 0.006210448737919233,
+      "importance_std": 0.0013224109806432357
+    },
+    {
+      "feature": "total_charges",
+      "importance_mean": 0.004516269305401305,
+      "importance_std": 0.0008771172494111904
+    },
+    {
+      "feature": "internet_service",
+      "importance_mean": 0.002456086743809427,
+      "importance_std": 0.0005549838208870186
+    },
+    {
+      "feature": "payment_method",
+      "importance_mean": 0.0019323911558948442,
+      "importance_std": 0.0002934161883642297
+    },
+    {
+      "feature": "num_dependents",
+      "importance_mean": 0.0008293982598155669,
+      "importance_std": 0.0005244401073903825
+    },
+    {
+      "feature": "region",
+      "importance_mean": 0.0006906431346327124,
+      "importance_std": 0.0001828867660218001
+    }
+  ],
+  "top_features_attribution": [
+    {
+      "feature": "tenure_months",
+      "mean_abs_contribution": 0.07978087746006042
+    },
+    {
+      "feature": "contract_type_Month-to-month",
+      "mean_abs_contribution": 0.06784480056607906
+    },
+    {
+      "feature": "monthly_charges",
+      "mean_abs_contribution": 0.033057286597219016
+    },
+    {
+      "feature": "contract_type_One year",
+      "mean_abs_contribution": 0.027109007721218565
+    },
+    {
+      "feature": "contract_type_Two year",
+      "mean_abs_contribution": 0.026018303146626467
+    },
+    {
+      "feature": "last_login_days",
+      "mean_abs_contribution": 0.020525273182247502
+    },
+    {
+      "feature": "num_support_tickets",
+      "mean_abs_contribution": 0.01980073728236208
+    },
+    {
+      "feature": "tickets_per_tenure_year",
+      "mean_abs_contribution": 0.01766229975909997
+    },
+    {
+      "feature": "tenure_bucket_0-6m",
+      "mean_abs_contribution": 0.014651729227603588
+    },
+    {
+      "feature": "internet_service_Fiber optic",
+      "mean_abs_contribution": 0.00955043959773813
+    }
+  ],
+  "attribution_method": "occlusion"
+}

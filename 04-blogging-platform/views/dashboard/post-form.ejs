@@ -1,0 +1,59 @@
+<%- include('../partials/head', { title: title }) %>
+
+<section class="dash-header">
+  <div>
+    <p class="eyebrow"><%= isEdit ? 'Edit post' : 'New post' %></p>
+    <h1><%= isEdit ? values.title : 'Write a new post' %></h1>
+  </div>
+  <a class="btn btn-ghost" href="/dashboard">← Back to dashboard</a>
+</section>
+
+<% if (errors.length) { %>
+  <ul class="form-error" role="alert">
+    <% errors.forEach(function (msg) { %><li><%= msg %></li><% }); %>
+  </ul>
+<% } %>
+
+<form class="stack-form post-form" method="post"
+      action="<%= isEdit ? '/dashboard/posts/' + values.id + '?_method=PUT' : '/dashboard/posts' %>"
+      enctype="multipart/form-data">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <label for="title">Title</label>
+  <input type="text" id="title" name="title" required maxlength="200" value="<%= values.title || '' %>">
+
+  <label for="slug">Slug <span class="hint">(optional — generated from the title)</span></label>
+  <input type="text" id="slug" name="slug" maxlength="80" value="<%= values.slug || '' %>" pattern="[A-Za-z0-9\-]*">
+
+  <label for="excerpt">Excerpt <span class="hint">(optional — generated from the body)</span></label>
+  <textarea id="excerpt" name="excerpt" rows="2" maxlength="300"><%= values.excerpt || '' %></textarea>
+
+  <label for="body_md">Body <span class="hint">(Markdown — rendered and sanitised on save)</span></label>
+  <textarea id="body_md" name="body_md" rows="18" required class="mono"><%= values.body_md || '' %></textarea>
+
+  <label for="tags">Tags <span class="hint">(comma separated, max 10)</span></label>
+  <input type="text" id="tags" name="tags" value="<%= values.tags || '' %>" placeholder="javascript, sqlite, express">
+
+  <label for="cover">Cover image <span class="hint">(JPEG/PNG/GIF/WebP, max 2 MB)</span></label>
+  <input type="file" id="cover" name="cover" accept="image/jpeg,image/png,image/gif,image/webp">
+
+  <% if (values.cover_image) { %>
+    <div class="cover-preview">
+      <img src="<%= values.cover_image %>" alt="Current cover image">
+      <label class="checkbox"><input type="checkbox" name="remove_cover" value="1"> Remove current cover image</label>
+    </div>
+  <% } %>
+
+  <fieldset class="status-field">
+    <legend>Status</legend>
+    <label class="checkbox"><input type="radio" name="status" value="draft" <%= values.status === 'published' ? '' : 'checked' %>> Draft</label>
+    <label class="checkbox"><input type="radio" name="status" value="published" <%= values.status === 'published' ? 'checked' : '' %>> Published</label>
+  </fieldset>
+
+  <div class="form-actions">
+    <button class="btn" type="submit"><%= isEdit ? 'Save changes' : 'Create post' %></button>
+    <% if (isEdit) { %><a class="btn btn-ghost" href="/posts/<%= values.slug %>">View post</a><% } %>
+  </div>
+</form>
+
+<%- include('../partials/footer') %>

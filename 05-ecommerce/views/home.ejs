@@ -1,0 +1,60 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<section class="hero">
+  <img src="/img/hero.svg" alt="">
+  <div class="hero-body">
+    <h1>Northwind Goods</h1>
+    <p>
+      A fictional homewares and outdoors shop, built as a learning project.
+      Browse <strong><%= categories.reduce(function (n, c) { return n + c.product_count; }, 0) %> demo products</strong>,
+      fill a basket and walk through a <strong>simulated</strong> checkout. Nothing is charged and nothing ships.
+    </p>
+    <a class="btn" href="/products">Browse the demo catalogue</a>
+  </div>
+</section>
+
+<div class="demo-callout">
+  <h2>This is a demo, not a shop</h2>
+  <p>There is no real merchant behind this site and no payment provider is connected. The checkout accepts
+    test card numbers such as <code>4242 4242 4242 4242</code> and simulates the result in memory.</p>
+  <p>Try the demo promo code <code>SAVE10</code> in the basket.</p>
+</div>
+
+<div class="section-head">
+  <h2>Shop by category</h2>
+  <a href="/products">See everything &rarr;</a>
+</div>
+<div class="grid">
+  <% categories.forEach(function (c) { %>
+    <a class="card" href="/products?category=<%= encodeURIComponent(c.slug) %>" style="text-decoration:none;color:inherit">
+      <div class="card-body">
+        <p class="eyebrow"><%= c.product_count %> item<%= c.product_count === 1 ? '' : 's' %></p>
+        <h3 class="card-title"><%= c.name %></h3>
+        <p class="muted"><%= c.description %></p>
+      </div>
+    </a>
+  <% }); %>
+</div>
+
+<div class="section-head">
+  <h2>Top rated in the demo catalogue</h2>
+  <a href="/products?sort=rating">All top rated &rarr;</a>
+</div>
+<div class="grid">
+  <% featured.forEach(function (product) { %>
+    <%- include('partials/product-card', { p: product }) %>
+  <% }); %>
+</div>
+
+<div class="section-head">
+  <h2>Newest additions</h2>
+  <a href="/products?sort=newest">All new arrivals &rarr;</a>
+</div>
+<div class="grid">
+  <% newest.forEach(function (product) { %>
+    <%- include('partials/product-card', { p: product }) %>
+  <% }); %>
+</div>
+
+<%- include('partials/footer') %>

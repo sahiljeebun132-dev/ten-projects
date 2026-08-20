@@ -1,0 +1,71 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Admin &mdash; <%= mode === 'new' ? 'new product' : 'edit product' %></h1>
+<div class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/products">Products</a>
+  <a class="<%= mode === 'new' ? 'active' : '' %>" href="/admin/products/new">New product</a>
+  <a href="/admin/orders">Orders</a>
+</div>
+
+<% if (errors.length) { %>
+  <ul class="errors"><% errors.forEach(function (e) { %><li><%= e %></li><% }); %></ul>
+<% } %>
+
+<section class="panel" style="max-width:720px">
+  <form action="<%= mode === 'new' ? '/admin/products' : '/admin/products/' + product.id + '?_method=PUT' %>" method="post">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" name="name" value="<%= product.name || '' %>" required>
+    </div>
+
+    <div class="field">
+      <label for="slug">Slug (optional &mdash; generated from the name if blank)</label>
+      <input id="slug" type="text" name="slug" value="<%= product.slug || '' %>">
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" required><%= product.description || '' %></textarea>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="price">Price (dollars)</label>
+        <input id="price" type="text" name="price" inputmode="decimal"
+               value="<%= product.price !== undefined ? product.price : (Number(product.price_cents || 0) / 100).toFixed(2) %>" required>
+        <p class="hint">Stored as integer cents.</p>
+      </div>
+      <div class="field">
+        <label for="stock">Stock</label>
+        <input id="stock" type="number" name="stock" min="0" max="100000" value="<%= product.stock %>" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="category_id">Category</label>
+        <select id="category_id" name="category_id" required>
+          <% categories.forEach(function (c) { %>
+            <option value="<%= c.id %>" <%= Number(product.category_id) === c.id ? 'selected' : '' %>><%= c.name %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="is_active">Availability</label>
+        <label style="font-weight:400">
+          <input id="is_active" type="checkbox" name="is_active" value="1" <%= product.is_active ? 'checked' : '' %>>
+          On sale in the demo storefront
+        </label>
+      </div>
+    </div>
+
+    <button class="btn" type="submit"><%= mode === 'new' ? 'Create product' : 'Save changes' %></button>
+    <a class="btn btn-ghost" href="/admin/products">Cancel</a>
+  </form>
+</section>
+
+<%- include('../partials/footer') %>

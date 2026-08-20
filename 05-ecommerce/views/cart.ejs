@@ -1,0 +1,89 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<h1>Your basket</h1>
+
+<% if (!items.length) { %>
+  <div class="panel empty-state">
+    <h2>Your basket is empty</h2>
+    <p class="muted">Add a few demo products and come back &mdash; the checkout is simulated, so nothing is charged.</p>
+    <a class="btn" href="/products">Browse the demo catalogue</a>
+  </div>
+<% } else { %>
+  <div class="cart-layout">
+    <section class="panel">
+      <% items.forEach(function (line) { %>
+        <div class="cart-line">
+          <a href="/products/<%= line.slug %>"><img src="<%= line.image_url %>" alt="<%= line.name %>" loading="lazy"></a>
+          <div>
+            <h3><a href="/products/<%= line.slug %>"><%= line.name %></a></h3>
+            <p class="muted" style="margin:0"><%= money(line.unit_price_cents) %> each &middot; <%= line.stock %> in stock</p>
+            <div class="cart-actions">
+              <form action="/cart/update" method="post" class="inline-form" data-autosubmit>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="product_id" value="<%= line.product_id %>">
+                <div class="qty-picker" data-qty>
+                  <button type="button" data-step="-1" aria-label="Decrease quantity">&minus;</button>
+                  <input type="number" name="quantity" value="<%= line.quantity %>" min="0" max="<%= line.maxQuantity %>"
+                         inputmode="numeric" aria-label="Quantity of <%= line.name %>">
+                  <button type="button" data-step="1" aria-label="Increase quantity">+</button>
+                </div>
+                <noscript><button class="btn btn-small" type="submit">Update</button></noscript>
+              </form>
+              <form action="/cart/remove" method="post" class="inline-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="product_id" value="<%= line.product_id %>">
+                <button class="linkish" type="submit">Remove</button>
+              </form>
+            </div>
+          </div>
+          <div class="line-total"><%= money(line.line_total_cents) %></div>
+        </div>
+      <% }); %>
+
+      <div style="display:flex;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap">
+        <a href="/products">&larr; Continue shopping</a>
+        <form action="/cart/clear" method="post" data-confirm="Empty your basket?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="linkish" type="submit">Empty basket</button>
+        </form>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <h2 style="margin-top:0">Order summary</h2>
+      <ul class="totals">
+        <li><span>Subtotal (<%= totals.itemCount %> item<%= totals.itemCount === 1 ? '' : 's' %>)</span><span><%= money(totals.subtotal_cents) %></span></li>
+        <% if (totals.discount_cents > 0) { %>
+          <li class="discount"><span>Discount (<%= totals.promo.code %>)</span><span>&minus;<%= money(totals.discount_cents) %></span></li>
+        <% } %>
+        <li>
+          <span>Shipping (<%= totals.shippingMethod.label %>)</span>
+          <span><%= totals.freeShipping ? 'Free' : money(totals.shipping_cents) %></span>
+        </li>
+        <li><span>Tax (<%= (totals.taxRate * 100).toFixed(0) %>%)</span><span><%= money(totals.tax_cents) %></span></li>
+        <li class="total-row"><span>Total</span><span><%= money(totals.total_cents) %></span></li>
+      </ul>
+
+      <% if (!totals.freeShipping && totals.amountToFreeShipping_cents > 0) { %>
+        <p class="muted" style="font-size:.86rem">
+          Spend <%= money(totals.amountToFreeShipping_cents) %> more for free standard shipping in this demo.
+        </p>
+      <% } %>
+
+      <form class="promo-form" action="/cart/promo" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label class="sr-only" for="promo">Promo code</label>
+        <input id="promo" type="text" name="promo_code" value="<%= promoCode %>" placeholder="Promo code (try SAVE10)">
+        <button class="btn btn-small" type="submit"><%= promoCode ? 'Update' : 'Apply' %></button>
+      </form>
+
+      <a class="btn btn-block" href="/checkout/address" style="margin-top:18px">Checkout (demo)</a>
+      <p class="muted" style="font-size:.84rem;margin-bottom:0">
+        The next steps are a simulated checkout. No payment provider is contacted and no card is charged.
+      </p>
+    </aside>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

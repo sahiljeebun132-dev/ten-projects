@@ -1,0 +1,78 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Checkout</h1>
+<%- include('../partials/steps', { step: step }) %>
+
+<div class="panel confirm-hero">
+  <p class="eyebrow">Demo order placed</p>
+  <h2 style="margin:4px 0 10px">Thank you &mdash; your simulated order is confirmed</h2>
+  <p class="order-number"><%= order.order_number %></p>
+  <p class="muted">Placed <%= order.placed_at %> &middot; status <span class="status status-<%= order.status %>"><%= order.status %></span></p>
+</div>
+
+<div class="demo-callout" style="margin-top:20px">
+  <h2>Nothing was charged and nothing will ship</h2>
+  <p>
+    This confirmation is part of a learning project. No payment was taken (the card details were a public test
+    number, checked in memory and discarded) and no goods exist to send. The only real effects are a row in the
+    demo database and reduced demo stock levels.
+  </p>
+</div>
+
+<div class="checkout-layout" style="margin-top:20px">
+  <section class="panel">
+    <h2 style="margin-top:0">Items</h2>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Item</th><th class="num">Unit price</th><th class="num">Qty</th><th class="num">Line total</th></tr></thead>
+        <tbody>
+          <% items.forEach(function (i) { %>
+            <tr>
+              <td><a href="/products/<%= i.slug %>"><%= i.name %></a></td>
+              <td class="num"><%= money(i.unit_price_cents) %></td>
+              <td class="num"><%= i.quantity %></td>
+              <td class="num"><%= money(i.line_total_cents) %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Delivery</h2>
+    <p class="muted" style="margin:0">
+      <strong><%= method.label %></strong> &mdash; <%= method.eta %> (simulated)<br>
+      <%= order.ship_name %><br>
+      <%= order.ship_line1 %><% if (order.ship_line2) { %><br><%= order.ship_line2 %><% } %><br>
+      <%= order.ship_city %><% if (order.ship_region) { %>, <%= order.ship_region %><% } %><br>
+      <%= order.ship_postal %> &middot; <%= order.ship_country %>
+    </p>
+
+    <h2>Payment (simulated)</h2>
+    <p class="muted" style="margin:0">
+      <%= order.payment_brand %> ending <%= order.payment_last4 %> &mdash; test card, no charge made.<br>
+      Receipt email (not actually sent): <%= order.email %>
+    </p>
+  </section>
+
+  <aside class="panel">
+    <h2 style="margin-top:0">Totals</h2>
+    <ul class="totals">
+      <li><span>Subtotal</span><span><%= money(order.subtotal_cents) %></span></li>
+      <% if (order.discount_cents > 0) { %>
+        <li class="discount"><span>Discount<%= order.promo_code ? ' (' + order.promo_code + ')' : '' %></span><span>&minus;<%= money(order.discount_cents) %></span></li>
+      <% } %>
+      <li><span>Shipping</span><span><%= order.shipping_cents === 0 ? 'Free' : money(order.shipping_cents) %></span></li>
+      <li><span>Tax</span><span><%= money(order.tax_cents) %></span></li>
+      <li class="total-row"><span>Total (not charged)</span><span><%= money(order.total_cents) %></span></li>
+    </ul>
+    <p style="margin-top:18px">
+      <a class="btn btn-block" href="/products">Continue shopping</a>
+      <% if (user) { %>
+        <a class="btn btn-ghost btn-block" style="margin-top:8px" href="/account/orders/<%= order.order_number %>">View in order history</a>
+      <% } %>
+    </p>
+  </aside>
+</div>
+
+<%- include('../partials/footer') %>

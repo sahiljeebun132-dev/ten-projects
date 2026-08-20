@@ -1,0 +1,98 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Your addresses</h1>
+<div class="admin-nav">
+  <a href="/account">Overview</a>
+  <a href="/account/orders">Order history</a>
+  <a class="active" href="/account/addresses">Addresses</a>
+</div>
+
+<% if (errors.length) { %>
+  <ul class="errors"><% errors.forEach(function (e) { %><li><%= e %></li><% }); %></ul>
+<% } %>
+
+<div class="cart-layout">
+  <section class="panel">
+    <h2 style="margin-top:0">Saved addresses</h2>
+    <% if (!addresses.length) { %>
+      <p class="muted">No addresses yet. Add one using the form.</p>
+    <% } %>
+    <% addresses.forEach(function (a) { %>
+      <div style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px">
+        <strong><%= a.label %></strong>
+        <% if (a.is_default) { %> <span class="status status-paid">Default</span><% } %>
+        <p class="muted" style="margin:6px 0 10px">
+          <%= a.full_name %><br>
+          <%= a.line1 %><% if (a.line2) { %><br><%= a.line2 %><% } %><br>
+          <%= a.city %><% if (a.region) { %>, <%= a.region %><% } %><br>
+          <%= a.postal_code %> &middot; <%= a.country %>
+          <% if (a.phone) { %><br><%= a.phone %><% } %>
+        </p>
+        <% if (!a.is_default) { %>
+          <form action="/account/addresses/<%= a.id %>/default" method="post" class="inline-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn btn-small btn-ghost" type="submit">Make default</button>
+          </form>
+        <% } %>
+        <form action="/account/addresses/<%= a.id %>?_method=DELETE" method="post" class="inline-form" data-confirm="Delete this address?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn btn-small btn-danger" type="submit">Delete</button>
+        </form>
+      </div>
+    <% }); %>
+  </section>
+
+  <section class="panel">
+    <h2 style="margin-top:0">Add an address</h2>
+    <form action="/account/addresses" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="label">Label</label>
+        <input id="label" type="text" name="label" value="<%= form.label || 'Home' %>">
+      </div>
+      <div class="field">
+        <label for="full_name">Recipient name</label>
+        <input id="full_name" type="text" name="full_name" value="<%= form.full_name || '' %>" required>
+      </div>
+      <div class="field">
+        <label for="line1">Address line 1</label>
+        <input id="line1" type="text" name="line1" value="<%= form.line1 || '' %>" required>
+      </div>
+      <div class="field">
+        <label for="line2">Address line 2</label>
+        <input id="line2" type="text" name="line2" value="<%= form.line2 || '' %>">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="city">City</label>
+          <input id="city" type="text" name="city" value="<%= form.city || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="region">County / State</label>
+          <input id="region" type="text" name="region" value="<%= form.region || '' %>">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="postal_code">Postal / ZIP</label>
+          <input id="postal_code" type="text" name="postal_code" value="<%= form.postal_code || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="country">Country code</label>
+          <input id="country" type="text" name="country" maxlength="2" value="<%= form.country || 'US' %>" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="phone">Phone (optional)</label>
+        <input id="phone" type="tel" name="phone" value="<%= form.phone || '' %>">
+      </div>
+      <div class="field">
+        <label><input type="checkbox" name="is_default" value="1"> Use as my default delivery address</label>
+      </div>
+      <button class="btn btn-block" type="submit">Save address</button>
+    </form>
+  </section>
+</div>
+
+<%- include('../partials/footer') %>

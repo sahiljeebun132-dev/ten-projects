@@ -1,0 +1,37 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<div style="max-width:460px;margin:0 auto">
+  <h1>Create a demo account</h1>
+  <p class="muted">This is a throwaway account on a demo store. Please invent a password rather than reusing a real one.</p>
+
+  <% if (errors.length) { %>
+    <ul class="errors"><% errors.forEach(function (e) { %><li><%= e %></li><% }); %></ul>
+  <% } %>
+
+  <form class="panel" action="/register" method="post">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" name="name" value="<%= form.name || '' %>" required autocomplete="name">
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="<%= form.email || '' %>" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required minlength="8" autocomplete="new-password">
+      <p class="hint">At least 8 characters. Stored hashed with bcrypt.</p>
+    </div>
+    <div class="field">
+      <label for="confirm_password">Confirm password</label>
+      <input id="confirm_password" type="password" name="confirm_password" required minlength="8" autocomplete="new-password">
+    </div>
+    <button class="btn btn-block" type="submit">Create account</button>
+  </form>
+
+  <p>Already registered? <a href="/login">Sign in</a>.</p>
+</div>
+
+<%- include('partials/footer') %>

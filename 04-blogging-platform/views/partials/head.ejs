@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title ? title + ' — ' + siteTitle : siteTitle %></title>
+  <meta name="description" content="<%= typeof description !== 'undefined' && description ? description : siteDescription %>">
+  <link rel="alternate" type="application/rss+xml" title="<%= siteTitle %> RSS" href="/rss.xml">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128221;</text></svg>">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/"><%= siteTitle %></a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">☰</button>
+
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/tags">Tags</a>
+        <form class="search-form" action="/search" method="get" role="search">
+          <label class="sr-only" for="q">Search posts</label>
+          <input id="q" type="search" name="q" placeholder="Search…" value="<%= typeof query !== 'undefined' && query ? query : '' %>" maxlength="80">
+          <button type="submit">Go</button>
+        </form>
+        <% if (currentUser) { %>
+          <a href="/dashboard">Dashboard</a>
+          <form class="inline-form" action="/logout" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="link-button" type="submit">Log out (<%= currentUser.name %>)</button>
+          </form>
+        <% } else { %>
+          <a href="/login">Log in</a>
+          <a class="btn btn-small" href="/register">Register</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="container">
+    <% if (flash && flash.message) { %>
+      <div class="flash flash-<%= flash.type === 'success' ? 'success' : 'error' %>" role="status"><%= flash.message %></div>
+    <% } %>

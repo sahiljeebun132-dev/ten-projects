@@ -1,0 +1,17 @@
+<% if (pages > 1) { %>
+  <nav class="pagination" aria-label="Pagination">
+    <% if (page > 1) { %>
+      <a class="page-link" href="<%= baseUrl %><%= baseUrl.includes('?') ? '&' : '?' %>page=<%= page - 1 %>" rel="prev">← Newer</a>
+    <% } else { %>
+      <span class="page-link disabled">← Newer</span>
+    <% } %>
+
+    <span class="page-status">Page <%= page %> of <%= pages %></span>
+
+    <% if (page < pages) { %>
+      <a class="page-link" href="<%= baseUrl %><%= baseUrl.includes('?') ? '&' : '?' %>page=<%= page + 1 %>" rel="next">Older →</a>
+    <% } else { %>
+      <span class="page-link disabled">Older →</span>
+    <% } %>
+  </nav>
+<% } %>

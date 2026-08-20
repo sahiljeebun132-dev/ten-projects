@@ -1,0 +1,12 @@
+# E-commerce Sales & Customer Behaviour Analysis - pinned to the versions the
+# pipeline was developed and verified against (Python 3.11).
+pandas>=2.1
+numpy>=1.26
+matplotlib>=3.8
+seaborn>=0.13
+scipy>=1.11
+pyarrow>=14.0        # parquet engine for data/processed/*.parquet
+jupyter>=1.0         # notebooks/eda.ipynb
+nbconvert>=7.0       # headless execution of the notebook
+ipykernel>=6.25
+pytest>=7.4          # tests/test_pipeline.py

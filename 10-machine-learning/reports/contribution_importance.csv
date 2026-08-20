@@ -1,0 +1,37 @@
+feature,mean_abs_contribution
+tenure_months,0.07978087746006042
+contract_type_Month-to-month,0.06784480056607906
+monthly_charges,0.033057286597219016
+contract_type_One year,0.027109007721218565
+contract_type_Two year,0.026018303146626467
+last_login_days,0.020525273182247502
+num_support_tickets,0.01980073728236208
+tickets_per_tenure_year,0.01766229975909997
+tenure_bucket_0-6m,0.014651729227603588
+internet_service_Fiber optic,0.00955043959773813
+num_dependents,0.009545331801589145
+charges_per_tenure_month,0.00943157357244029
+internet_service_DSL,0.008053646271559845
+total_charges,0.006524294830224168
+payment_method_Electronic check,0.004993801387014431
+usage_z_by_contract,0.0038989250088561555
+tenure_bucket_13-24m,0.003684933517221151
+tenure_bucket_25-48m,0.0027229414306300984
+region_South,0.002686858639678262
+region_North,0.0026558117235443613
+is_senior_1,0.002340053049648873
+is_senior_0,0.0022809767786861625
+avg_monthly_usage_gb,0.002160738384065854
+churn_risk_score_v0,0.0019532310008527577
+payment_method_Mailed check,0.0016654605728259437
+tenure_bucket_7-12m,0.001504115960249658
+has_streaming_0,0.0014887489662746634
+payment_method_Credit card (automatic),0.0014817596948993575
+tenure_bucket_49m+,0.0012955543254810598
+has_streaming_1,0.0012948292389959543
+internet_service_No internet service,0.0009339786178433611
+payment_method_Bank transfer (automatic),0.0007868775156567809
+account_flagged_for_review_1,0.0003134232130582865
+region_East,0.0002838577126390653
+region_West,0.0002454552966293208
+account_flagged_for_review_0,0.00021399738692872713

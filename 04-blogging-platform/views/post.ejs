@@ -1,0 +1,83 @@
+<%- include('partials/head', { title: post.title, description: post.excerpt }) %>
+
+<article class="post-full">
+  <header class="post-header">
+    <% if (post.status === 'draft') { %>
+      <p class="draft-banner">Draft preview — only you and administrators can see this.</p>
+    <% } %>
+    <h1><%= post.title %></h1>
+    <p class="post-meta">
+      <a href="/authors/<%= slugify(post.author_name) %>"><%= post.author_name %></a>
+      · <time datetime="<%= post.published_at || post.created_at %>"><%= formatDate(post.published_at || post.created_at) %></time>
+      · <%= post.reading_time %> min read
+      · <%= post.views %> view<%= post.views === 1 ? '' : 's' %>
+    </p>
+    <% if (post.tags.length) { %>
+      <p class="tag-list">
+        <% post.tags.forEach(function (tag) { %><a class="tag" href="/tags/<%= tag.slug %>">#<%= tag.name %></a><% }); %>
+      </p>
+    <% } %>
+    <% if (canEdit) { %>
+      <p class="owner-actions">
+        <a class="btn btn-small" href="/dashboard/posts/<%= post.id %>/edit">Edit post</a>
+      </p>
+    <% } %>
+  </header>
+
+  <% if (post.cover_image) { %>
+    <img class="post-cover" src="<%= post.cover_image %>" alt="Cover image for <%= post.title %>">
+  <% } %>
+
+  <%# body_html is sanitised with DOMPurify before it is stored (lib/content.js) %>
+  <div class="post-body"><%- post.body_html %></div>
+</article>
+
+<section class="comments" id="comments">
+  <h2><%= comments.length %> comment<%= comments.length === 1 ? '' : 's' %></h2>
+
+  <% if (!comments.length) { %>
+    <p class="empty">No comments yet — be the first.</p>
+  <% } %>
+
+  <ul class="comment-list">
+    <% comments.forEach(function (comment) { %>
+      <li class="comment">
+        <p class="comment-meta">
+          <strong><%= comment.author_name %></strong>
+          <time datetime="<%= comment.created_at %>"><%= formatDate(comment.created_at) %></time>
+        </p>
+        <p class="comment-body"><%= comment.body %></p>
+        <% if (currentUser && currentUser.role === 'admin') { %>
+          <form class="inline-form" action="/comments/<%= comment.id %>?_method=DELETE" method="post" data-confirm="Delete this comment?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="link-button danger" type="submit">Delete</button>
+          </form>
+        <% } %>
+      </li>
+    <% }); %>
+  </ul>
+
+  <% if (post.status === 'published') { %>
+    <h3>Leave a comment</h3>
+    <form class="comment-form" action="/posts/<%= post.slug %>/comments" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <%# Honeypot: real users never see or fill this field. %>
+      <div class="hp-field" aria-hidden="true">
+        <label for="website">Website</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <label for="author_name">Name</label>
+      <input type="text" id="author_name" name="author_name" required maxlength="60"
+             value="<%= typeof commentDraft !== 'undefined' && commentDraft ? commentDraft.author_name : '' %>">
+
+      <label for="body">Comment</label>
+      <textarea id="body" name="body" rows="5" required maxlength="2000"><%= typeof commentDraft !== 'undefined' && commentDraft ? commentDraft.body : '' %></textarea>
+
+      <button class="btn" type="submit">Post comment</button>
+    </form>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,8 @@
+# Local password manager - runtime dependencies
+cryptography>=42.0.0
+argon2-cffi>=23.1.0
+rich>=13.0.0
+pyperclip>=1.8.2
+
+# Test dependencies
+pytest>=8.0.0

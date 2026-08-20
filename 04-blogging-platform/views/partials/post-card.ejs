@@ -1,0 +1,24 @@
+<article class="post-card<%= post.cover_image ? ' has-cover' : '' %>">
+  <% if (post.cover_image) { %>
+    <a class="post-card-cover" href="/posts/<%= post.slug %>">
+      <img src="<%= post.cover_image %>" alt="Cover image for <%= post.title %>" loading="lazy">
+    </a>
+  <% } %>
+  <div class="post-card-body">
+    <h2 class="post-card-title"><a href="/posts/<%= post.slug %>"><%= post.title %></a></h2>
+    <p class="post-meta">
+      <a href="/authors/<%= slugify(post.author_name) %>"><%= post.author_name %></a>
+      · <time datetime="<%= post.published_at || post.created_at %>"><%= formatDate(post.published_at || post.created_at) %></time>
+      · <%= post.reading_time %> min read
+      · <%= post.views %> view<%= post.views === 1 ? '' : 's' %>
+      · <%= post.comment_count %> comment<%= post.comment_count === 1 ? '' : 's' %>
+    </p>
+    <p class="post-card-excerpt"><%= post.excerpt %></p>
+    <% if (post.tags && post.tags.length) { %>
+      <p class="tag-list">
+        <% post.tags.forEach(function (tag) { %><a class="tag" href="/tags/<%= tag.slug %>">#<%= tag.name %></a><% }); %>
+      </p>
+    <% } %>
+    <p><a class="read-more" href="/posts/<%= post.slug %>">Read more →</a></p>
+  </div>
+</article>

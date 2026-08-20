@@ -1,0 +1,39 @@
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div>
+      <h2 class="footer-title">Northwind Goods</h2>
+      <p class="muted">
+        A fictional demo store built as a learning project with Express, SQLite and EJS.
+        No goods are for sale, no payments are taken and nothing on this site is a real offer.
+      </p>
+      <p class="muted"><strong>Simulated checkout only.</strong> The payment step accepts test card numbers such as
+        <code>4242 4242 4242 4242</code> and never contacts a payment provider. Never enter a real card number here.</p>
+    </div>
+    <div class="footer-links">
+      <h3>Browse</h3>
+      <ul>
+        <li><a href="/products">All products</a></li>
+        <% navCategories.slice(0, 5).forEach(function (c) { %>
+          <li><a href="/products?category=<%= encodeURIComponent(c.slug) %>"><%= c.name %></a></li>
+        <% }); %>
+      </ul>
+    </div>
+    <div class="footer-links">
+      <h3>Demo accounts</h3>
+      <ul>
+        <li><code>admin@example.com</code> / <code>admin123</code></li>
+        <li><code>customer@example.com</code> / <code>customer123</code></li>
+        <li>Promo code: <code>SAVE10</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap footer-bottom muted">
+    Demo project &middot; not a real merchant &middot; simulated payments only
+  </div>
+</footer>
+
+<script src="/js/app.js" defer></script>
+</body>
+</html>

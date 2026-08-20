@@ -1,0 +1,42 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Order history</h1>
+<div class="admin-nav">
+  <a href="/account">Overview</a>
+  <a class="active" href="/account/orders">Order history</a>
+  <a href="/account/addresses">Addresses</a>
+</div>
+
+<p class="muted">Every order below is a simulated demo order. No payments were taken.</p>
+
+<section class="panel">
+  <% if (!orders.length) { %>
+    <div class="empty-state">
+      <h2>No orders yet</h2>
+      <p class="muted">Add something to your basket and run through the demo checkout.</p>
+      <a class="btn" href="/products">Browse products</a>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Order</th><th>Placed</th><th>Items</th><th>Delivery</th><th>Status</th><th class="num">Total</th><th></th></tr></thead>
+        <tbody>
+          <% orders.forEach(function (o) { %>
+            <tr>
+              <td><code><%= o.order_number %></code></td>
+              <td><%= String(o.placed_at).slice(0, 16) %></td>
+              <td><%= o.item_count %></td>
+              <td><%= o.shipping_method %></td>
+              <td><span class="status status-<%= o.status %>"><%= o.status %></span></td>
+              <td class="num"><%= money(o.total_cents) %></td>
+              <td><a href="/account/orders/<%= o.order_number %>">Details</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>

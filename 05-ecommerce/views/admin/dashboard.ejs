@@ -1,0 +1,68 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Admin &mdash; demo store</h1>
+<p class="muted">Manage the fictional catalogue and the simulated orders.</p>
+
+<div class="admin-nav">
+  <a class="active" href="/admin">Dashboard</a>
+  <a href="/admin/products">Products</a>
+  <a href="/admin/products/new">New product</a>
+  <a href="/admin/orders">Orders</a>
+  <a href="/">View storefront</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat"><div class="stat-value"><%= stats.products %></div><div class="stat-label">Products</div></div>
+  <div class="stat"><div class="stat-value"><%= stats.active %></div><div class="stat-label">On sale</div></div>
+  <div class="stat"><div class="stat-value"><%= stats.lowStock %></div><div class="stat-label">Low stock (&le;10)</div></div>
+  <div class="stat"><div class="stat-value"><%= stats.orders %></div><div class="stat-label">Demo orders</div></div>
+  <div class="stat"><div class="stat-value"><%= money(stats.revenue_cents) %></div><div class="stat-label">Simulated revenue</div></div>
+  <div class="stat"><div class="stat-value"><%= stats.customers %></div><div class="stat-label">Customers</div></div>
+</div>
+
+<div class="cart-layout">
+  <section class="panel">
+    <h2 style="margin-top:0">Recent orders</h2>
+    <% if (!recentOrders.length) { %>
+      <p class="muted">No demo orders yet.</p>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Order</th><th>Email</th><th>Status</th><th class="num">Total</th><th></th></tr></thead>
+          <tbody>
+            <% recentOrders.forEach(function (o) { %>
+              <tr>
+                <td><code><%= o.order_number %></code></td>
+                <td><%= o.email %></td>
+                <td><span class="status status-<%= o.status %>"><%= o.status %></span></td>
+                <td class="num"><%= money(o.total_cents) %></td>
+                <td><a href="/admin/orders/<%= o.id %>">Open</a></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="panel">
+    <h2 style="margin-top:0">Lowest stock</h2>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Product</th><th class="num">Stock</th><th class="num">Price</th></tr></thead>
+        <tbody>
+          <% lowStock.forEach(function (p) { %>
+            <tr>
+              <td><a href="/admin/products/<%= p.id %>/edit"><%= p.name %></a></td>
+              <td class="num"><%= p.stock %></td>
+              <td class="num"><%= money(p.price_cents) %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<%- include('../partials/footer') %>

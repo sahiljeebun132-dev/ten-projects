@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="A real-time chat application with rooms, direct messages, presence and persistent history." />
+<title>Chat</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>" />
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<!-- ───────────────────────────── sign in ───────────────────────────── -->
+<div id="signin" class="signin" hidden>
+  <form id="signin-form" class="signin__card" autocomplete="on">
+    <div class="signin__brand"><span class="signin__logo">💬</span> <span>Chat</span></div>
+    <p class="signin__lede">Pick a nickname. A password is optional — leave it blank to join as a guest.</p>
+
+    <label class="field">
+      <span class="field__label">Nickname</span>
+      <input id="signin-nick" name="nickname" type="text" required minlength="2" maxlength="24"
+             placeholder="ada" autocomplete="username" autocapitalize="none" spellcheck="false" />
+    </label>
+
+    <label class="field">
+      <span class="field__label">Password <em>(optional)</em></span>
+      <input id="signin-pass" name="password" type="password" maxlength="128"
+             placeholder="leave blank for guest" autocomplete="current-password" />
+    </label>
+
+    <p id="signin-error" class="signin__error" role="alert" hidden></p>
+
+    <button id="signin-submit" class="btn btn--primary btn--block" type="submit">Join the chat</button>
+
+    <p class="signin__note">
+      New nickname + password → account created. Existing account → password required.
+    </p>
+  </form>
+</div>
+
+<!-- ───────────────────────────── app shell ─────────────────────────── -->
+<div id="app" class="app" hidden>
+
+  <div id="banner" class="banner" role="status" hidden>
+    <span class="banner__dot"></span>
+    <span id="banner-text">Reconnecting…</span>
+  </div>
+
+  <div id="scrim" class="scrim" hidden></div>
+
+  <aside id="sidebar" class="sidebar" aria-label="Rooms and people">
+    <header class="sidebar__head">
+      <div class="brand"><span aria-hidden="true">💬</span> Chat</div>
+      <button id="close-sidebar" class="icon-btn sidebar__close" type="button" aria-label="Close sidebar">✕</button>
+    </header>
+
+    <section class="pane">
+      <div class="pane__head">
+        <h2 class="pane__title">Rooms</h2>
+        <button id="new-room" class="icon-btn" type="button" title="Create a room" aria-label="Create a room">＋</button>
+      </div>
+      <ul id="room-list" class="list" role="list"></ul>
+    </section>
+
+    <section class="pane">
+      <h2 class="pane__title">Direct messages</h2>
+      <ul id="dm-list" class="list" role="list"></ul>
+      <p id="dm-empty" class="pane__empty">Click someone in “Online” to start a DM.</p>
+    </section>
+
+    <section class="pane pane--grow">
+      <h2 class="pane__title">Online <span id="online-count" class="pill">0</span></h2>
+      <ul id="online-list" class="list" role="list"></ul>
+    </section>
+
+    <footer class="sidebar__foot">
+      <div class="me">
+        <span id="me-avatar" class="avatar" aria-hidden="true">?</span>
+        <span id="me-nick" class="me__nick">…</span>
+      </div>
+      <div class="sidebar__actions">
+        <button id="toggle-theme" class="icon-btn" type="button" title="Toggle light / dark theme" aria-label="Toggle theme">◐</button>
+        <button id="toggle-sound" class="icon-btn" type="button" title="Toggle notification sound" aria-pressed="true" aria-label="Toggle sound">🔊</button>
+        <button id="toggle-notify" class="icon-btn" type="button" title="Enable desktop notifications" aria-label="Enable desktop notifications">🔔</button>
+        <button id="logout" class="icon-btn" type="button" title="Sign out" aria-label="Sign out">⏻</button>
+      </div>
+    </footer>
+  </aside>
+
+  <main class="chat">
+    <header class="chat__head">
+      <button id="open-sidebar" class="icon-btn chat__menu" type="button" aria-label="Open sidebar">☰</button>
+      <div class="chat__ident">
+        <h1 id="chat-title" class="chat__title">#general</h1>
+        <p id="chat-topic" class="chat__topic"></p>
+      </div>
+      <div class="chat__tools">
+        <span id="member-count" class="pill" title="People here">0</span>
+        <button id="leave-room" class="btn btn--ghost" type="button">Leave</button>
+      </div>
+    </header>
+
+    <div id="messages" class="messages" role="log" aria-live="polite" aria-relevant="additions text" tabindex="0">
+      <div id="load-older-wrap" class="load-older" hidden>
+        <button id="load-older" class="btn btn--ghost" type="button">Load older messages</button>
+      </div>
+      <div id="message-list" class="messages__list"></div>
+    </div>
+
+    <div id="jump-latest" class="jump" hidden><button class="btn btn--pill" type="button">↓ New messages</button></div>
+
+    <p id="typing" class="typing" aria-live="polite"></p>
+
+    <div id="reply-bar" class="reply-bar" hidden>
+      <span class="reply-bar__label">Replying to <b id="reply-nick"></b></span>
+      <span id="reply-text" class="reply-bar__text"></span>
+      <button id="reply-cancel" class="icon-btn" type="button" aria-label="Cancel reply">✕</button>
+    </div>
+
+    <form id="composer" class="composer">
+      <button id="emoji-btn" class="icon-btn composer__emoji" type="button" aria-label="Insert emoji" aria-expanded="false">🙂</button>
+      <div id="emoji-picker" class="emoji-picker" hidden role="dialog" aria-label="Emoji picker"></div>
+      <textarea id="input" class="composer__input" rows="1" maxlength="2000"
+                placeholder="Message #general — try /me or /shrug" autocomplete="off"></textarea>
+      <button id="send" class="btn btn--primary composer__send" type="submit">Send</button>
+    </form>
+    <p id="composer-hint" class="composer__hint">Enter to send · Shift+Enter for a new line</p>
+  </main>
+</div>
+
+<!-- ───────────────────────────── modal ──────────────────────────────── -->
+<div id="modal" class="modal" hidden>
+  <form id="modal-form" class="modal__card">
+    <h2 id="modal-title" class="modal__title">Create a room</h2>
+    <label class="field">
+      <span class="field__label">Room name</span>
+      <input id="modal-name" type="text" maxlength="32" placeholder="project-x" autocapitalize="none" spellcheck="false" required />
+    </label>
+    <label class="field">
+      <span class="field__label">Topic <em>(optional)</em></span>
+      <input id="modal-topic" type="text" maxlength="140" placeholder="What is this room for?" />
+    </label>
+    <p id="modal-error" class="signin__error" role="alert" hidden></p>
+    <div class="modal__actions">
+      <button id="modal-cancel" class="btn btn--ghost" type="button">Cancel</button>
+      <button class="btn btn--primary" type="submit">Create</button>
+    </div>
+  </form>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<!-- socket.io client is served by our own server -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/util.js"></script>
+<script src="/js/sound.js"></script>
+<script src="/js/render.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

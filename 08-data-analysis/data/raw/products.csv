@@ -1,0 +1,401 @@
+product_id,name,category,subcategory,cost,list_price,supplier
+P0001,Eco Paper Model,Office Supplies,Paper,34.71,51.55,SUP-004
+P0002,Nordic Womenswear Set,Apparel,Womenswear,25.92,51.0,SUP-026
+P0003,Pro Board Game Kit,Toys & Games,Board Games,18.82,36.59,SUP-027
+P0004,Classic Cosmetic Set,Beauty,Cosmetics,9.09,21.09,SUP-024
+P0005,Ultra Camera Pack,Electronics,Cameras,238.34,318.32,SUP-002
+P0006,Classic Coffee & Tea Pack,Grocery,Coffee & Tea,20.34,23.66,SUP-025
+P0007,Ultra Printer Kit,Office Supplies,Printers,10.41,14.25,SUP-025
+P0008,Nordic Printer Set,Office Supplies,Printers,27.8,44.51,SUP-026
+P0009,Classic Phone Model,ELECTRONICS,Phones,187.84,268.81,SUP-019
+P0010,Urban Menswear Series,Apparel,Menswear,21.67,38.09,SUP-006
+P0011,Eco Menswear Kit,Apparel,Menswear,26.92,71.45,SUP-019
+P0012,Classic Household Edition,Grocery,Household,7.26,10.2,SUP-027
+P0013,Essential Haircare Set,Beauty,Haircare,20.06,43.97,
+P0014,Nordic Outdoor Toy Collection,Toys & Games,Outdoor Toys,13.68,25.61,SUP-020
+P0015,Everyday Accessorie Model,Apparel,Accessories,23.47,58.57,SUP-010
+P0016,Everyday Small Appliance Line,HOME & KITCHEN,Small Appliances,79.56,124.33,SUP-029
+P0017,Pro Fitnes Pack,Sports & Outdoors,Fitness,59.03,93.83,SUP-015
+P0018,Pro Laptop Series,ELECTRONICS,Laptops,302.05,392.08,SUP-010
+P0019,Premium Puzzle Pack,Toys & Games,Puzzles,22.43,39.94,SUP-013
+P0020,Compact Skincare Model,Beauty,Skincare,7.71,14.16,SUP-010
+P0021,Classic Printer Edition,Office Supplies,Printers,20.47,35.68,SUP-007
+P0022,Everyday Menswear Model,Apparel,Menswear,29.36,58.2,SUP-020
+P0023,Deluxe Household Collection,Grocery,Household,16.36,21.52,SUP-017
+P0024,Premium Coffee & Tea Pack,Grocery,Coffee & Tea,9.54,16.33,SUP-016
+P0025,Essential Printer Set,Office Supplies,Printers,27.8,42.43,SUP-016
+P0026,Everyday Storage Model,Home & Kitchen,Storage,32.18,54.16,SUP-026
+P0027,Premium Womenswear Set,Apparel,Womenswear,28.85,65.56,SUP-026
+P0028,Classic Camera Line,Electronics,Cameras,251.5,334.1,SUP-006
+P0029,Eco Storage Line,Home & Kitchen,Storage,21.59,33.73,SUP-025
+P0030,Urban Fragrance Edition,Beauty,Fragrance,19.59,53.49,SUP-019
+P0031,Pro Furniture Series,Office Supplies,Furniture,7.75,10.73,SUP-030
+P0032,Signature Snack Edition,Grocery,Snacks,9.02,12.66,SUP-022
+P0033,Compact Accessorie Kit,Apparel,Accessories,25.25,52.04,SUP-007
+P0034,Everyday Accessorie Line,Apparel,Accessories,35.05,67.23,SUP-026
+P0035,Nordic Team Sport Set,Sports & Outdoors,Team Sports,45.23,64.32,SUP-030
+P0036,Pro Storage Collection,Home & Kitchen,Storage,93.53,144.66,SUP-003
+P0037,Signature Camera Pack,Electronics,Cameras,292.88,426.86,SUP-005
+P0038,Ultra Camping Kit,Sports & Outdoors,Camping,50.66,81.34,SUP-007
+P0039,Eco Cookware Kit,Home & Kitchen,Cookware,33.26,60.35,SUP-015
+P0040,Pro Skincare Set,Beauty,Skincare,6.37,13.56,SUP-020
+P0041,Deluxe Footwear Model,Apparel,Footwear,21.74,44.4,SUP-002
+P0042,Compact Puzzle Pack,Toys & Games,Puzzles,24.59,47.26,
+P0043,Premium Haircare Collection,Beauty,Haircare,9.86,33.09,SUP-016
+P0044,Urban Womenswear Line,Apparel,Womenswear,19.21,35.45,SUP-011
+P0045,Premium Puzzle Series,Toys & Games,Puzzles,16.74,27.29,SUP-012
+P0046,Nordic Figure Series, Toys & Games ,Figures,21.32,35.18,SUP-011
+P0047,Ultra Womenswear Kit,Apparel,Womenswear,24.05,46.32,SUP-014
+P0048,Eco Small Appliance Line,Home & Kitchen,Small Appliances,25.01,40.08,SUP-009
+P0049,Essential Skincare Set,Beauty,Skincare,16.0,31.54,SUP-019
+P0050,Premium Bedding Model,Home & Kitchen,Bedding,41.07,68.65,SUP-022
+P0051,Nordic Small Appliance Series,Home & Kitchen,Small Appliances,46.12,67.39,SUP-004
+P0052,Essential Phone Pack,Electronics,Phones,185.82,223.81,SUP-020
+P0053,Nordic Writing Set,Office Supplies,Writing,15.86,23.49,SUP-023
+P0054,Essential Cosmetic Collection,Beauty,Cosmetics,12.42,23.93,SUP-002
+P0055,Signature Fragrance Set,Beauty,Fragrance,8.51,22.91,SUP-014
+P0056,Nordic Writing Kit,Office Supplies,Writing,37.21,51.35,SUP-003
+P0057,Everyday Menswear Line,Apparel,Menswear,16.72,37.37,SUP-025
+P0058,Classic Fitnes Collection,Sports & Outdoors,Fitness,28.8,46.62,SUP-004
+P0059,Essential Bedding Series,Home & Kitchen,Bedding,24.04,40.53,SUP-026
+P0060,Essential Wearable Pack,Electronics,Wearables,401.12,523.99,SUP-008
+P0061,Deluxe Skincare Pack,Beauty,Skincare,9.93,23.75,SUP-016
+P0062,Essential Camping Kit,Sports & Outdoors,Camping,83.91,123.04,SUP-027
+P0063,Essential Cycling Model,Sports & Outdoors,Cycling,49.53,62.32,SUP-011
+P0064,Urban Printer Line,Office Supplies,Printers,27.35,33.93,SUP-012
+P0065,Eco Skincare Kit,Beauty,Skincare,12.94,26.58,SUP-003
+P0066,Compact Cycling Model,Sports & Outdoors,Cycling,30.89,50.81,SUP-030
+P0067,Eco Cycling Series,Sports & Outdoors,Cycling,56.31,85.51,SUP-018
+P0068,Nordic Menswear Series,Apparel,Menswear,16.4,28.09,SUP-012
+P0069,Urban Phone Series,Electronics,Phones,689.95,872.86,SUP-011
+P0070,Classic Menswear Collection,Apparel,Menswear,29.87,64.82,SUP-014
+P0071,Deluxe Bedding Pack,Home & Kitchen,Bedding,84.87,132.73,SUP-029
+P0072,Signature Accessorie Collection,Apparel,Accessories,16.6,33.16,SUP-027
+P0073,Ultra Outdoor Toy Collection,Toys & Games,Outdoor Toys,8.83,16.62,SUP-016
+P0074,Essential Bedding Series,Home & Kitchen,Bedding,66.09,109.49,SUP-009
+P0075,Ultra Camera Collection,Electronics,Cameras,420.17,553.56,SUP-027
+P0076,Eco Cookware Model,Home & Kitchen,Cookware,55.45,92.92,SUP-024
+P0077,Premium Footwear Model,Apparel,Footwear,26.69,65.93,SUP-021
+P0078,Signature Haircare Line,Beauty,Haircare,10.31,23.11,SUP-006
+P0079,Everyday Fitnes Collection,Sports & Outdoors,Fitness,132.35,195.34,SUP-029
+P0080,Everyday Printer Pack,OFFICE SUPPLIES,Printers,23.07,36.45,SUP-029
+P0081,Pro Fragrance Model,Beauty,Fragrance,11.39,20.36,SUP-002
+P0082,Premium Accessorie Series,Apparel,Accessories,18.79,45.46,SUP-002
+P0083,Pro Figure Pack,TOYS & GAMES,Figures,16.66,33.51,SUP-021
+P0084,Ultra Small Appliance Edition,Home & Kitchen,Small Appliances,62.63,98.89,SUP-013
+P0085,Classic Laptop Edition,Electronics,Laptops,438.85,521.13,SUP-001
+P0086,Everyday Laptop Line,Electronics,Laptops,192.13,219.88,SUP-013
+P0087,Signature Furniture Edition,Office Supplies,Furniture,17.88,25.7,SUP-010
+P0088,Ultra Footwear Collection,Apparel,Footwear,13.59,25.38,SUP-007
+P0089,Eco Storage Line,Home & Kitchen,Storage,74.78,108.63,SUP-014
+P0090,Essential Team Sport Collection,Sports & Outdoors,Team Sports,63.05,102.18,SUP-005
+P0091,Nordic Cookware Set,Home & Kitchen,Cookware,47.35,82.58,SUP-001
+P0092,Pro Skincare Series,Beauty,Skincare,3.79,10.53,SUP-018
+P0093,Deluxe Menswear Collection,Apparel,Menswear,10.22,21.55,SUP-026
+P0094,Deluxe Footwear Pack,Apparel,Footwear,31.53,62.78,SUP-026
+P0095,Eco Womenswear Pack,Apparel,Womenswear,23.53,43.5,SUP-019
+P0096,Nordic Cosmetic Edition,Beauty,Cosmetics,22.95,48.28,SUP-010
+P0097,Signature Footwear Model,Apparel,Footwear,24.6,60.73,SUP-013
+P0098,Eco Wearable Kit,Electronics,Wearables,384.46,506.16,SUP-011
+P0099,Classic Audio Set,Electronics,Audio,253.51,295.88,SUP-022
+P0100,Essential Snack Edition,Grocery,Snacks,21.76,30.02,SUP-018
+P0101,Pro Coffee & Tea Series,Grocery,Coffee & Tea,14.37,17.84,SUP-006
+P0102,Everyday Cosmetic Pack,Beauty,Cosmetics,6.82,16.11,SUP-001
+P0103,Nordic Storage Model,Home & Kitchen,Storage,71.23,115.01,SUP-027
+P0104,Urban Coffee & Tea Edition, Grocery ,Coffee & Tea,11.97,14.87,SUP-009
+P0105,Classic Furniture Collection,Office Supplies,Furniture,15.3,23.2,
+P0106,Urban Printer Edition,Office Supplies,Printers,24.28,38.53,SUP-007
+P0107,Urban Accessorie Edition,Apparel,Accessories,26.88,50.65,SUP-017
+P0108,Compact Storage Set,Home & Kitchen,Storage,49.51,91.22,SUP-018
+P0109,Signature Audio Pack,Electronics,Audio,173.49,217.1,SUP-016
+P0110,Classic Pantry Line,Grocery,Pantry,9.1,12.56,SUP-013
+P0111,Pro Accessorie Edition,Apparel,Accessories,28.86,57.25,SUP-021
+P0112,Pro Small Appliance Kit,Home & Kitchen,Small Appliances,29.89,46.06,SUP-006
+P0113,Urban Accessorie Collection,Apparel,Accessories,31.57,57.43,SUP-015
+P0114,Essential Cosmetic Line,Beauty,Cosmetics,12.27,29.34,SUP-016
+P0115,Essential Cookware Pack,Home & Kitchen,Cookware,13.77,23.1,SUP-018
+P0116,Pro Outdoor Toy Set,Toys & Games,Outdoor Toys,17.54,28.98,SUP-024
+P0117,Pro Furniture Line,Office Supplies,Furniture,44.87,77.4,SUP-001
+P0118,Nordic Paper Pack,Office Supplies,Paper,24.19,41.37,SUP-027
+P0119,Compact Footwear Model,Apparel,Footwear,16.97,58.66,SUP-018
+P0120,Compact Haircare Model,Beauty,Haircare,19.78,44.78,SUP-015
+P0121,Ultra Skincare Set,Beauty,Skincare,11.84,29.36,SUP-004
+P0122,Pro Haircare Series,Beauty,Haircare,18.8,35.06,SUP-029
+P0123,Ultra Wearable Model,Electronics,Wearables,155.6,198.59,SUP-027
+P0124,Eco Womenswear Line,Apparel,Womenswear,40.54,72.33,SUP-016
+P0125,Premium Laptop Series,Electronics,Laptops,284.05,372.15,SUP-015
+P0126,Nordic Fitnes Pack,Sports & Outdoors,Fitness,78.18,102.39,SUP-004
+P0127,Eco Menswear Collection,Apparel,Menswear,21.91,45.06,SUP-027
+P0128,Urban Bedding Collection,Home & Kitchen,Bedding,80.9,117.81,SUP-029
+P0129,Classic Phone Edition,Electronics,Phones,305.26,432.8,SUP-017
+P0130,Pro Haircare Line,Beauty,Haircare,6.32,13.45,SUP-017
+P0131,Pro Storage Series,Home & Kitchen,Storage,49.99,78.26,SUP-026
+P0132,Deluxe Snack Set,Grocery,Snacks,7.86,11.05,SUP-012
+P0133,Compact Cosmetic Series,Beauty,Cosmetics,13.0,30.32,SUP-007
+P0134,Nordic Footwear Kit,Apparel,Footwear,62.07,125.77,SUP-004
+P0135,Eco Haircare Kit,Beauty,Haircare,8.3,17.84,SUP-013
+P0136,Premium Laptop Edition,Electronics,Laptops,207.02,287.23,SUP-026
+P0137,Urban Household Kit,Grocery,Household,7.48,10.56,SUP-008
+P0138,Ultra Camping Series,Sports & Outdoors,Camping,60.56,86.26,SUP-027
+P0139,Signature Paper Line,Office Supplies,Paper,21.8,37.78,SUP-016
+P0140,Everyday Audio Collection,Electronics,Audio,265.45,342.32,SUP-004
+P0141,Nordic Fitnes Edition,Sports & Outdoors,Fitness,92.68,168.15,SUP-005
+P0142,Everyday Camping Set,Sports & Outdoors,Camping,38.86,59.3,SUP-001
+P0143,Pro Snack Pack,Grocery,Snacks,12.3,17.91,SUP-019
+P0144,Premium Fitnes Kit,Sports & Outdoors,Fitness,76.11,113.37,SUP-006
+P0145,Nordic Team Sport Collection,Sports & Outdoors,Team Sports,102.75,118.25,SUP-015
+P0146,Pro Bedding Model,Home & Kitchen,Bedding,65.77,95.35,SUP-002
+P0147,Compact Accessorie Series,Apparel,Accessories,13.83,40.03,SUP-023
+P0148,Signature Cycling Model,Sports & Outdoors,Cycling,132.31,206.04,SUP-014
+P0149,Deluxe Womenswear Collection,Apparel,Womenswear,27.52,48.97,SUP-009
+P0150,Classic Camera Line,Electronics,Cameras,448.13,576.06,SUP-005
+P0151,Deluxe Figure Kit,Toys & Games,Figures,19.88,38.02,SUP-010
+P0152,Essential Snack Kit,Grocery,Snacks,20.48,26.78,SUP-018
+P0153,Premium Cookware Model,Home & Kitchen,Cookware,67.44,94.74,SUP-006
+P0154,Essential Fitnes Pack,Sports & Outdoors,Fitness,72.1,117.8,SUP-014
+P0155,Urban Audio Edition,Electronics,Audio,268.29,331.65,SUP-010
+P0156,Nordic Haircare Line,Beauty,Haircare,22.14,64.92,SUP-013
+P0157,Everyday Bedding Kit,Home & Kitchen,Bedding,66.55,108.61,SUP-028
+P0158,Premium Haircare Kit,Beauty,Haircare,13.07,28.19,SUP-013
+P0159,Premium Writing Collection,Office Supplies,Writing,27.3,40.77,SUP-021
+P0160,Deluxe Paper Pack,Office Supplies,Paper,38.18,57.22,SUP-010
+P0161,Ultra Camera Set,Electronics,Cameras,266.75,303.36,SUP-008
+P0162,Essential Pantry Set,Grocery,Pantry,12.61,16.67,SUP-005
+P0163,Eco Small Appliance Kit,Home & Kitchen,Small Appliances,53.86,89.62,SUP-007
+P0164,Everyday Camera Model,Electronics,Cameras,118.02,147.18,SUP-019
+P0165,Eco Cycling Kit,Sports & Outdoors,Cycling,58.33,99.32,SUP-030
+P0166,Compact Footwear Model,Apparel,Footwear,17.91,39.73,SUP-013
+P0167,Urban Puzzle Edition,TOYS & GAMES,Puzzles,31.8,53.59,SUP-029
+P0168,Urban Figure Kit,Toys & Games,Figures,11.22,22.37,SUP-015
+P0169,Deluxe Womenswear Line,Apparel,Womenswear,18.77,35.31,SUP-028
+P0170,Nordic Pantry Series,Grocery,Pantry,7.56,10.59,SUP-023
+P0171,Signature Bedding Kit,Home & Kitchen,Bedding,38.24,80.8,SUP-014
+P0172,Ultra Cycling Collection,Sports & Outdoors,Cycling,66.58,106.47,SUP-008
+P0173,Deluxe Small Appliance Kit,Home & Kitchen,Small Appliances,38.24,71.77,SUP-025
+P0174,Urban Snack Series,Grocery,Snacks,9.06,12.19,SUP-011
+P0175,Signature Small Appliance Kit,Home & Kitchen,,92.05,147.37,SUP-024
+P0176,Pro Wearable Collection, Electronics ,Wearables,300.12,342.77,SUP-006
+P0177,Pro Accessorie Pack,Apparel,Accessories,28.06,90.1,SUP-028
+P0178,Nordic Snack Model,Grocery,Snacks,13.62,18.18,SUP-024
+P0179,Eco Coffee & Tea Line,Grocery,Coffee & Tea,13.09,17.12,SUP-004
+P0180,Signature Furniture Model,Office Supplies,Furniture,38.6,54.63,SUP-017
+P0181,Everyday Coffee & Tea Series,Grocery,Coffee & Tea,16.98,23.29,SUP-030
+P0182,Nordic Coffee & Tea Kit,Grocery,Coffee & Tea,10.19,15.8,SUP-022
+P0183,Nordic Fitnes Edition,Sports & Outdoors,Fitness,101.33,174.05,SUP-013
+P0184,Classic Menswear Collection,Apparel,Menswear,34.32,62.88,SUP-024
+P0185,Signature Furniture Line,Office Supplies,Furniture,17.42,28.48,SUP-010
+P0186,Essential Skincare Edition,Beauty,Skincare,12.53,25.62,SUP-027
+P0187,Pro Womenswear Collection,Apparel,Womenswear,21.25,51.57,SUP-005
+P0188,Everyday Audio Edition,Electronics,Audio,183.4,243.56,SUP-001
+P0189,Premium Paper Collection,Office Supplies,Paper,25.67,36.62,SUP-020
+P0190,Signature Storage Series,Home & Kitchen,Storage,46.7,73.58,SUP-026
+P0191,Signature Snack Series,Grocery,Snacks,11.3,14.47,SUP-003
+P0192,Compact Small Appliance Collection,Home & Kitchen,Small Appliances,84.64,137.34,SUP-023
+P0193,Everyday Audio Collection,Electronics,Audio,257.67,380.68,SUP-012
+P0194,Ultra Outdoor Toy Pack,Toys & Games,Outdoor Toys,15.06,26.93,SUP-004
+P0195,Pro Bedding Series,Home & Kitchen,Bedding,36.16,64.7,SUP-025
+P0196,Compact Cookware Pack,Home & Kitchen,Cookware,71.6,118.61,SUP-020
+P0197,Premium Skincare Pack,Beauty,Skincare,12.78,30.43,SUP-030
+P0198,Urban Figure Line,Toys & Games,Figures,11.47,18.17,SUP-020
+P0199,Eco Bedding Kit,Home & Kitchen,Bedding,26.51,39.03,SUP-017
+P0200,Signature Womenswear Model,Apparel,Womenswear,56.51,111.96,SUP-002
+P0201,Deluxe Printer Collection,Office Supplies,Printers,12.02,17.25,SUP-013
+P0202,Signature Snack Edition,Grocery,Snacks,6.23,7.93,SUP-012
+P0203,Eco Team Sport Line,Sports & Outdoors,Team Sports,87.58,120.1,SUP-017
+P0204,Essential Storage Series,Home & Kitchen,Storage,63.46,102.25,SUP-007
+P0205,Urban Phone Set,Electronics,Phones,332.92,447.94,SUP-027
+P0206,Premium Cookware Line,Home & Kitchen,Cookware,76.9,121.03,SUP-002
+P0207,Ultra Audio Collection,Electronics,Audio,783.89,918.25,SUP-021
+P0208,Ultra Skincare Series,Beauty,Skincare,8.98,17.98,SUP-013
+P0209,Ultra Phone Edition,Electronics,Phones,297.24,362.92,SUP-010
+P0210,Compact Camping Collection,Sports & Outdoors,Camping,34.38,67.0,SUP-008
+P0211,Deluxe Cosmetic Series,Beauty,Cosmetics,10.02,23.23,SUP-028
+P0212,Pro Fragrance Line,Beauty,Fragrance,8.23,15.57,SUP-019
+P0213,Pro Small Appliance Series,Home & Kitchen,Small Appliances,86.93,139.61,SUP-025
+P0214,Everyday Puzzle Edition,Toys & Games,Puzzles,30.03,48.9,SUP-013
+P0215,Eco Paper Pack,Office Supplies,Paper,20.62,31.41,SUP-025
+P0216,Ultra Printer Model,Office Supplies,Printers,18.7,24.57,SUP-015
+P0217,Nordic Audio Set,Electronics,Audio,300.44,395.12,SUP-018
+P0218,Pro Phone Pack,Electronics,Phones,364.97,491.27,SUP-004
+P0219,Urban Pantry Kit,Grocery,Pantry,6.63,10.38,SUP-013
+P0220,Premium Womenswear Set,Apparel,Womenswear,25.9,51.31,SUP-028
+P0221,Compact Footwear Pack,Apparel,Footwear,10.41,24.67,SUP-018
+P0222,Premium Camping Collection,Sports & Outdoors,Camping,79.08,114.02,SUP-010
+P0223,Compact Cosmetic Collection,Beauty,Cosmetics,8.98,28.46,SUP-005
+P0224,Essential Household Set,Grocery,Household,11.78,17.02,SUP-017
+P0225,Signature Bedding Pack,Home & Kitchen,Bedding,48.94,73.02,SUP-028
+P0226,Deluxe Coffee & Tea Kit,Grocery,Coffee & Tea,13.78,21.27,SUP-029
+P0227,Compact Camera Pack,Electronics,Cameras,367.43,449.5,SUP-001
+P0228,Classic Cycling Series,Sports & Outdoors,Cycling,129.62,206.34,SUP-001
+P0229,Essential Haircare Edition,Beauty,Haircare,5.9,10.9,SUP-014
+P0230,Classic Phone Pack,Electronics,Phones,365.64,425.37,SUP-027
+P0231,Compact Bedding Kit,Home & Kitchen,Bedding,67.96,111.45,SUP-005
+P0232,Signature Womenswear Edition,Apparel,Womenswear,8.87,19.09,SUP-029
+P0233,Nordic Coffee & Tea Pack,Grocery,Coffee & Tea,9.79,12.09,SUP-018
+P0234,Urban Cosmetic Model,Beauty,Cosmetics,4.34,11.33,SUP-015
+P0235,Everyday Coffee & Tea Pack,Grocery,Coffee & Tea,4.26,5.33,SUP-013
+P0236,Compact Figure Pack,Toys & Games,Figures,18.55,29.41,SUP-024
+P0237,Urban Menswear Kit, Apparel ,Menswear,26.63,59.69,SUP-027
+P0238,Classic Paper Line,Office Supplies,Paper,37.58,48.23,SUP-021
+P0239,Pro Phone Set,Electronics,Phones,230.71,295.28,SUP-019
+P0240,Classic Laptop Pack,Electronics,Laptops,447.81,587.35,SUP-007
+P0241,Pro Outdoor Toy Edition,Toys & Games,Outdoor Toys,32.3,48.01,SUP-003
+P0242,Nordic Furniture Line,Office Supplies,Furniture,30.59,45.98,SUP-030
+P0243,Classic Cookware Pack,Home & Kitchen,Cookware,47.3,103.41,SUP-020
+P0244,Premium Camping Edition,Sports & Outdoors,Camping,75.25,120.66,SUP-017
+P0245,Nordic Haircare Edition,Beauty,Haircare,32.78,81.87,SUP-022
+P0246,Eco Puzzle Collection,Toys & Games,Puzzles,18.83,32.74,SUP-029
+P0247,Urban Cosmetic Pack,Beauty,Cosmetics,10.36,33.93,SUP-005
+P0248,Everyday Footwear Kit,Apparel,Footwear,19.99,39.61,SUP-012
+P0249,Premium Accessorie Collection,Apparel,Accessories,43.89,75.16,SUP-010
+P0250,Ultra Accessorie Edition,Apparel,Accessories,32.29,58.97,SUP-003
+P0251,Urban Fragrance Edition,Beauty,Fragrance,22.78,44.59,SUP-030
+P0252,Urban Puzzle Pack,Toys & Games,Puzzles,9.38,16.7,SUP-024
+P0253,Everyday Womenswear Edition,Apparel,Womenswear,24.93,53.9,SUP-030
+P0254,Essential Small Appliance Set,Home & Kitchen,Small Appliances,13.53,21.17,SUP-012
+P0255,Compact Small Appliance Kit,Home & Kitchen,Small Appliances,43.74,80.24,SUP-003
+P0256,Signature Furniture Set,Office Supplies,Furniture,19.7,26.97,SUP-019
+P0257,Classic Board Game Collection,Toys & Games,Board Games,28.46,42.33,SUP-030
+P0258,Ultra Camera Set,Electronics,Cameras,260.97,350.07,SUP-030
+P0259,Ultra Laptop Pack,Electronics,Laptops,260.24,328.48,SUP-002
+P0260,Ultra Skincare Collection,Beauty,Skincare,16.02,39.58,SUP-017
+P0261,Deluxe Storage Set,Home & Kitchen,Storage,62.51,96.89,SUP-019
+P0262,Urban Puzzle Series,Toys & Games,Puzzles,28.98,60.64,SUP-003
+P0263,Ultra Womenswear Set,Apparel,Womenswear,32.85,77.89,SUP-012
+P0264,Signature Small Appliance Model,Home & Kitchen,Small Appliances,41.75,69.99,SUP-010
+P0265,Deluxe Coffee & Tea Set,Grocery,Coffee & Tea,7.46,10.81,SUP-007
+P0266,Essential Bedding Set,Home & Kitchen,Bedding,68.44,107.57,SUP-006
+P0267,Pro Bedding Series,Home & Kitchen,Bedding,22.32,36.84,SUP-016
+P0268,Premium Bedding Model,Home & Kitchen,Bedding,14.13,20.34,SUP-015
+P0269,Premium Camera Edition,Electronics,Cameras,385.94,446.98,SUP-007
+P0270,Deluxe Wearable Series,Electronics,Wearables,277.33,433.02,SUP-015
+P0271,Urban Phone Set,Electronics,Phones,232.66,290.99,SUP-025
+P0272,Deluxe Storage Line,Home & Kitchen,Storage,34.25,64.38,SUP-020
+P0273,Urban Laptop Line,Electronics,Laptops,266.37,395.87,SUP-020
+P0274,Essential Cosmetic Model,Beauty,Cosmetics,9.85,20.9,SUP-013
+P0275,Signature Fragrance Line,Beauty,Fragrance,14.66,29.48,SUP-014
+P0276,Ultra Footwear Line,Apparel,Footwear,10.63,22.46,SUP-006
+P0277,Deluxe Womenswear Kit,APPAREL,Womenswear,8.85,18.0,SUP-009
+P0278,Pro Cycling Collection,Sports & Outdoors,Cycling,34.79,51.66,SUP-006
+P0279,Eco Outdoor Toy Kit,Toys & Games,Outdoor Toys,24.5,44.3,SUP-023
+P0280,Essential Board Game Set,Toys & Games,Board Games,12.12,23.89,SUP-015
+P0281,Pro Camera Line,Electronics,Cameras,336.48,411.86,SUP-004
+P0282,Everyday Storage Line,Home & Kitchen,Storage,30.44,47.48,SUP-015
+P0283,Signature Cookware Edition,Home & Kitchen,Cookware,26.46,45.84,SUP-014
+P0284,Signature Small Appliance Edition,Home & Kitchen,Small Appliances,31.39,58.07,SUP-006
+P0285,Premium Fitnes Pack,Sports & Outdoors,Fitness,96.72,124.57,SUP-023
+P0286,Eco Menswear Series,Apparel,Menswear,25.14,52.82,SUP-014
+P0287,Eco Wearable Model,Electronics,Wearables,136.27,154.69,SUP-023
+P0288,Nordic Menswear Series,Apparel,Menswear,44.81,89.81,SUP-027
+P0289,Nordic Cycling Set,Sports & Outdoors,Cycling,19.18,28.88,
+P0290,Signature Phone Kit,Electronics,Phones,437.27,617.54,SUP-001
+P0291,Premium Puzzle Line,Toys & Games,Puzzles,23.91,45.39,SUP-018
+P0292,Everyday Wearable Kit,Electronics,Wearables,148.38,225.0,SUP-007
+P0293,Signature Coffee & Tea Kit,Grocery,Coffee & Tea,6.06,7.62,SUP-027
+P0294,Urban Laptop Kit,Electronics,Laptops,424.69,554.58,SUP-009
+P0295,Deluxe Figure Pack,Toys & Games,Figures,20.61,30.91,SUP-017
+P0296,Eco Household Kit,Grocery,Household,16.23,19.46,SUP-002
+P0297,Nordic Household Series,Grocery,Household,11.37,13.82,SUP-021
+P0298,Ultra Furniture Pack,Office Supplies,Furniture,36.96,57.62,SUP-008
+P0299,Urban Printer Pack,Office Supplies,Printers,32.04,43.36,SUP-025
+P0300,Ultra Haircare Model,Beauty,Haircare,10.66,21.76,SUP-008
+P0301,Premium Paper Set,Office Supplies,Paper,13.72,19.93,SUP-024
+P0302,Signature Wearable Set,Electronics,Wearables,327.66,377.83,SUP-007
+P0303,Classic Cycling Pack, Sports & Outdoors ,Cycling,123.79,158.13,SUP-002
+P0304,Ultra Fitnes Set,Sports & Outdoors,Fitness,57.32,92.91,SUP-003
+P0305,Compact Board Game Edition,Toys & Games,Board Games,11.62,16.58,SUP-006
+P0306,Ultra Menswear Kit,Apparel,Menswear,22.83,40.54,SUP-026
+P0307,Deluxe Footwear Edition,Apparel,Footwear,16.39,35.84,SUP-013
+P0308,Compact Fragrance Pack,Beauty,Fragrance,10.49,32.24,SUP-022
+P0309,Signature Cookware Edition,Home & Kitchen,Cookware,69.67,128.04,SUP-007
+P0310,Ultra Cookware Edition,Home & Kitchen,Cookware,83.54,141.71,SUP-024
+P0311,Urban Fitnes Model,Sports & Outdoors,Fitness,52.98,83.74,SUP-009
+P0312,Eco Menswear Model,Apparel,Menswear,26.85,51.56,SUP-013
+P0313,Ultra Bedding Collection,Home & Kitchen,Bedding,20.76,34.57,SUP-002
+P0314,Pro Menswear Edition,Apparel,Menswear,22.07,50.82,SUP-007
+P0315,Nordic Womenswear Series,Apparel,Womenswear,51.41,82.83,SUP-007
+P0316,Classic Footwear Series,Apparel,Footwear,44.71,80.83,SUP-019
+P0317,Signature Footwear Edition,Apparel,Footwear,22.87,49.39,SUP-029
+P0318,Essential Skincare Edition,Beauty,Skincare,18.83,44.88,SUP-016
+P0319,Essential Accessorie Line,Apparel,Accessories,39.0,62.41,SUP-004
+P0320,Ultra Pantry Model,Grocery,Pantry,12.46,16.68,SUP-018
+P0321,Compact Pantry Set,Grocery,,9.18,11.92,SUP-008
+P0322,Essential Team Sport Set,Sports & Outdoors,Team Sports,55.58,83.68,SUP-006
+P0323,Signature Womenswear Set,Apparel,Womenswear,9.8,22.54,SUP-028
+P0324,Nordic Fitnes Kit,Sports & Outdoors,Fitness,39.81,60.67,SUP-015
+P0325,Nordic Board Game Model,Toys & Games,Board Games,13.74,25.14,SUP-027
+P0326,Eco Skincare Model,Beauty,Skincare,8.99,21.14,SUP-030
+P0327,Urban Outdoor Toy Edition,Toys & Games,Outdoor Toys,24.15,42.1,SUP-011
+P0328,Deluxe Fitnes Pack,Sports & Outdoors,Fitness,81.33,117.27,SUP-001
+P0329,Ultra Haircare Model,Beauty,Haircare,8.25,18.25,SUP-015
+P0330,Classic Small Appliance Set,Home & Kitchen,Small Appliances,66.92,102.59,SUP-001
+P0331,Compact Printer Collection,Office Supplies,Printers,43.55,60.31,SUP-023
+P0332,Eco Storage Collection,Home & Kitchen,Storage,26.92,41.3,SUP-007
+P0333,Everyday Fragrance Set,Beauty,Fragrance,6.52,23.48,SUP-007
+P0334,Classic Outdoor Toy Series,Toys & Games,Outdoor Toys,12.2,20.7,SUP-020
+P0335,Essential Audio Series,Electronics,Audio,281.49,422.77,SUP-014
+P0336,Deluxe Skincare Set,Beauty,Skincare,19.74,45.92,SUP-025
+P0337,Compact Laptop Collection,Electronics,Laptops,398.98,507.1,SUP-030
+P0338,Urban Paper Set,Office Supplies,Paper,22.6,31.31,SUP-006
+P0339,Ultra Audio Line,Electronics,Audio,525.94,608.83,SUP-003
+P0340,Nordic Coffee & Tea Model,Grocery,Coffee & Tea,19.86,27.05,SUP-025
+P0341,Everyday Storage Line,Home & Kitchen,Storage,49.1,79.49,SUP-027
+P0342,Deluxe Snack Line,Grocery,Snacks,12.22,14.79,SUP-014
+P0343,Compact Furniture Line,Office Supplies,Furniture,15.43,22.0,SUP-024
+P0344,Eco Cosmetic Set,Beauty,Cosmetics,8.06,24.31,SUP-026
+P0345,Eco Furniture Pack,Office Supplies,Furniture,40.57,55.08,SUP-003
+P0346,Signature Printer Line,OFFICE SUPPLIES,Printers,20.77,32.63,SUP-021
+P0347,Urban Household Edition,Grocery,Household,9.38,12.12,SUP-009
+P0348,Everyday Small Appliance Edition,Home & Kitchen,Small Appliances,80.34,166.02,SUP-019
+P0349,Pro Cosmetic Model,Beauty,Cosmetics,7.96,17.06,SUP-021
+P0350,Classic Wearable Line,Electronics,Wearables,186.7,236.73,SUP-003
+P0351,Ultra Cosmetic Set,Beauty,Cosmetics,4.82,19.16,SUP-008
+P0352,Signature Bedding Pack,Home & Kitchen,Bedding,38.65,62.77,SUP-015
+P0353,Premium Cycling Pack,Sports & Outdoors,Cycling,104.13,164.72,SUP-015
+P0354,Everyday Team Sport Series,Sports & Outdoors,Team Sports,33.79,60.09,SUP-003
+P0355,Everyday Womenswear Collection,Apparel,Womenswear,8.96,16.63,SUP-015
+P0356,Premium Cycling Model,Sports & Outdoors,Cycling,122.24,163.96,SUP-006
+P0357,Ultra Writing Kit,Office Supplies,Writing,13.33,19.31,SUP-013
+P0358,Signature Writing Edition,Office Supplies,Writing,12.55,17.69,SUP-018
+P0359,Pro Team Sport Line,Sports & Outdoors,Team Sports,52.26,77.24,SUP-019
+P0360,Eco Skincare Collection,Beauty,Skincare,11.23,25.25,SUP-023
+P0361,Ultra Coffee & Tea Edition,Grocery,Coffee & Tea,14.94,20.19,SUP-023
+P0362,Urban Phone Kit,Electronics,Phones,141.8,157.83,SUP-009
+P0363,Eco Audio Set,Electronics,Audio,331.39,410.28,SUP-030
+P0364,Nordic Laptop Kit,Electronics,Laptops,375.94,472.5,SUP-026
+P0365,Nordic Haircare Kit,Beauty,Haircare,19.13,50.17,SUP-025
+P0366,Eco Menswear Line,Apparel,Menswear,28.33,73.3,SUP-030
+P0367,Urban Printer Series,Office Supplies,Printers,39.13,56.99,SUP-010
+P0368,Everyday Fragrance Model,Beauty,Fragrance,15.58,37.57,SUP-020
+P0369,Compact Womenswear Line,Apparel,Womenswear,51.69,96.79,SUP-010
+P0370,Pro Household Pack, Grocery ,Household,20.07,24.19,SUP-014
+P0371,Ultra Paper Edition,Office Supplies,Paper,31.28,41.32,SUP-001
+P0372,Eco Bedding Pack,Home & Kitchen,Bedding,34.93,57.63,SUP-009
+P0373,Classic Footwear Set,Apparel,Footwear,32.14,61.63,SUP-001
+P0374,Urban Menswear Edition,Apparel,Menswear,33.49,59.4,
+P0375,Premium Storage Kit,Home & Kitchen,Storage,81.11,145.22,SUP-027
+P0376,Classic Cookware Collection,Home & Kitchen,Cookware,40.56,70.01,SUP-017
+P0377,Pro Household Edition,Grocery,Household,18.65,24.11,SUP-022
+P0378,Deluxe Menswear Model,Apparel,Menswear,18.17,30.82,SUP-010
+P0379,Premium Accessorie Kit,Apparel,Accessories,54.59,94.51,SUP-002
+P0380,Compact Paper Collection,Office Supplies,Paper,22.67,33.15,SUP-014
+P0381,Deluxe Cycling Model,Sports & Outdoors,Cycling,39.35,61.67,SUP-025
+P0382,Essential Coffee & Tea Model,Grocery,Coffee & Tea,20.33,25.83,SUP-019
+P0383,Ultra Furniture Model,Office Supplies,Furniture,26.18,36.12,SUP-014
+P0384,Compact Fitnes Model,Sports & Outdoors,Fitness,58.09,81.29,
+P0385,Ultra Womenswear Collection,Apparel,Womenswear,31.84,65.28,SUP-028
+P0386,Nordic Household Kit,Grocery,Household,12.09,16.53,SUP-030
+P0387,Urban Paper Set,Office Supplies,Paper,18.9,28.66,SUP-003
+P0388,Urban Coffee & Tea Line,Grocery,Coffee & Tea,25.68,27.83,SUP-013
+P0389,Everyday Wearable Kit,Electronics,Wearables,285.97,329.47,SUP-003
+P0390,Essential Puzzle Kit,Toys & Games,Puzzles,7.13,14.48,SUP-016
+P0391,Eco Fragrance Series,Beauty,Fragrance,10.71,22.27,SUP-012
+P0392,Ultra Camera Model,Electronics,Cameras,141.0,175.32,SUP-029
+P0393,Essential Fragrance Kit,Beauty,Fragrance,5.11,15.77,SUP-012
+P0394,Urban Skincare Line,Beauty,Skincare,9.99,21.35,SUP-028
+P0395,Eco Laptop Model,Electronics,Laptops,199.2,218.7,SUP-005
+P0396,Pro Womenswear Collection,Apparel,Womenswear,18.97,35.48,SUP-003
+P0397,Premium Outdoor Toy Model,Toys & Games,Outdoor Toys,19.23,35.27,SUP-011
+P0398,Urban Menswear Series,Apparel,Menswear,29.69,54.83,SUP-014
+P0399,Nordic Accessorie Collection,Apparel,Accessories,22.54,43.75,SUP-027
+P0400,Premium Footwear Edition,Apparel,Footwear,21.77,44.05,SUP-021

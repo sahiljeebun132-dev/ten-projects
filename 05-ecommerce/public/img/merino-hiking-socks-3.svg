@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Merino Hiking Socks - placeholder illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="hsl(166 42% 96%)"/>
+      <stop offset="100%" stop-color="hsl(191 46% 88%)"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <g>
+    <circle cx="400" cy="290" r="160" fill="hsl(166 45% 92%)"/>
+    <path d="M400 150 L512 290 L400 430 L288 290 Z" fill="hsl(206 70% 62%)" opacity="0.92"/>
+    <path d="M400 205 L457 290 L400 375 L343 290 Z" fill="hsl(6 55% 70%)" opacity="0.95"/>
+    <circle cx="414" cy="290" r="18" fill="#ffffff" opacity="0.85"/>
+  </g>
+  <text x="400" y="492" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" fill="hsl(166 35% 22%)">Merino Hiking Socks</text>
+  <text x="400" y="528" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" letter-spacing="2" fill="hsl(166 35% 22%)" opacity="0.65">VIEW 3 OF 3</text>
+  <text x="400" y="52" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" letter-spacing="3" fill="hsl(166 35% 22%)" opacity="0.5">NORTHWIND GOODS &#183; DEMO</text>
+</svg>

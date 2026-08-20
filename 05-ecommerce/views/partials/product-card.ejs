@@ -1,0 +1,24 @@
+<article class="card product-card">
+  <a class="card-media" href="/products/<%= p.slug %>">
+    <img src="<%= p.image_url || '/img/placeholder.svg' %>" alt="<%= p.name %>" loading="lazy" width="800" height="600">
+    <% if (p.stock === 0) { %><span class="pill pill-out">Out of stock</span>
+    <% } else if (p.stock <= 10) { %><span class="pill pill-low">Only <%= p.stock %> left</span><% } %>
+  </a>
+  <div class="card-body">
+    <p class="eyebrow"><%= p.category_name %></p>
+    <h3 class="card-title"><a href="/products/<%= p.slug %>"><%= p.name %></a></h3>
+    <div class="rating-row"><%- include('stars', { rating: p.rating, count: p.rating_count }) %></div>
+    <div class="card-foot">
+      <span class="price"><%= money(p.price_cents) %></span>
+      <form action="/cart/add" method="post" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="product_id" value="<%= p.id %>">
+        <input type="hidden" name="quantity" value="1">
+        <input type="hidden" name="redirect_to" value="<%= currentPath %>">
+        <button type="submit" class="btn btn-small" <%= p.stock === 0 ? 'disabled' : '' %>>
+          <%= p.stock === 0 ? 'Sold out' : 'Add to basket' %>
+        </button>
+      </form>
+    </div>
+  </div>
+</article>

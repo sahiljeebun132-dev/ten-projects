@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A 7-day weather forecast app built on the free Open-Meteo API. No API key, no build step.">
+<meta name="color-scheme" content="dark light">
+<title>Skycast &middot; Weather Forecast</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%23ffd166'/%3E%3C/svg%3E">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<div class="sky" id="sky" aria-hidden="true">
+  <div class="sky__glow"></div>
+</div>
+
+<header class="topbar">
+  <div class="wrap topbar__inner">
+    <h1 class="brand">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="28" height="28" focusable="false">
+          <circle cx="12" cy="12" r="6.5" fill="var(--sun)"/>
+          <path d="M22 26H10a5.5 5.5 0 0 1-.6-10.97A7.5 7.5 0 0 1 23.7 16.2 5 5 0 0 1 22 26Z" fill="var(--cloud)"/>
+        </svg>
+      </span>
+      Skycast
+    </h1>
+
+    <div class="topbar__controls">
+      <fieldset class="unitgroup">
+        <legend class="sr-only">Temperature units</legend>
+        <div class="segmented" role="group" aria-label="Temperature units">
+          <button type="button" class="seg" data-unit-temp="c" aria-pressed="true">&deg;C</button>
+          <button type="button" class="seg" data-unit-temp="f" aria-pressed="false">&deg;F</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="unitgroup">
+        <legend class="sr-only">Wind speed units</legend>
+        <div class="segmented" role="group" aria-label="Wind speed units">
+          <button type="button" class="seg" data-unit-wind="kmh" aria-pressed="true">km/h</button>
+          <button type="button" class="seg" data-unit-wind="mph" aria-pressed="false">mph</button>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="searchbar" aria-label="Find a location">
+    <form id="search-form" class="search" role="search" autocomplete="off">
+      <div class="search__field">
+        <label class="sr-only" for="city-input">Search for a city</label>
+        <span class="search__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" focusable="false">
+            <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+          </svg>
+        </span>
+        <input
+          id="city-input"
+          class="search__input"
+          type="search"
+          name="city"
+          placeholder="Search for a city&hellip;"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="suggestions"
+          aria-autocomplete="list"
+          aria-describedby="search-hint"
+          spellcheck="false"
+          enterkeyhint="search">
+        <span id="search-hint" class="sr-only">
+          Type at least two characters. Use the up and down arrow keys to browse suggestions, Enter to choose, Escape to dismiss.
+        </span>
+        <button type="button" id="clear-btn" class="search__clear is-hidden" aria-label="Clear search">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <ul id="suggestions" class="suggestions is-hidden" role="listbox" aria-label="City suggestions"></ul>
+      </div>
+
+      <button type="button" id="geo-btn" class="btn btn--ghost">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>
+        </svg>
+        Use my location
+      </button>
+    </form>
+
+    <div class="recents is-hidden" id="recents-wrap">
+      <h2 class="recents__label" id="recents-label">Recent</h2>
+      <ul class="chips" id="recents" aria-labelledby="recents-label"></ul>
+    </div>
+  </section>
+
+  <main id="main" class="main">
+    <!-- Screen-reader announcements for async updates -->
+    <p id="live-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+
+    <!-- Error / empty panel -->
+    <section id="error-panel" class="panel panel--error is-hidden" role="alert" tabindex="-1">
+      <span class="panel__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" focusable="false">
+          <circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.4h.01"/>
+        </svg>
+      </span>
+      <div class="panel__body">
+        <h2 class="panel__title" id="error-title">Something went wrong</h2>
+        <p class="panel__text" id="error-text"></p>
+        <button type="button" class="btn btn--solid is-hidden" id="error-retry">Try again</button>
+      </div>
+    </section>
+
+    <!-- Loading skeleton -->
+    <div id="skeleton" class="skeleton is-hidden" aria-hidden="true">
+      <div class="sk sk--current"></div>
+      <div class="sk sk--strip"></div>
+      <div class="sk-days">
+        <div class="sk sk--day"></div><div class="sk sk--day"></div><div class="sk sk--day"></div>
+        <div class="sk sk--day"></div><div class="sk sk--day"></div><div class="sk sk--day"></div>
+        <div class="sk sk--day"></div>
+      </div>
+    </div>
+
+    <!-- Welcome / empty state -->
+    <section id="welcome" class="welcome">
+      <span class="welcome__art" aria-hidden="true">
+        <svg viewBox="0 0 120 80" width="150" height="100" focusable="false">
+          <circle cx="42" cy="30" r="15" fill="var(--sun)" opacity=".9"/>
+          <path d="M86 62H40a13 13 0 0 1-1.4-25.9A17.6 17.6 0 0 1 89 45.6 8.6 8.6 0 0 1 86 62Z" fill="var(--cloud)"/>
+        </svg>
+      </span>
+      <h2 class="welcome__title">Check the weather anywhere</h2>
+      <p class="welcome__text">
+        Search for a city above, or use your current location. Powered by
+        <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> &mdash; free, and no API key required.
+      </p>
+    </section>
+
+    <!-- Results -->
+    <div id="results" class="results is-hidden">
+
+      <section class="card card--current" aria-labelledby="place-name">
+        <header class="current__head">
+          <div>
+            <h2 class="current__place" id="place-name"></h2>
+            <p class="current__meta" id="place-meta"></p>
+          </div>
+          <p class="current__updated" id="updated-at"></p>
+        </header>
+
+        <div class="current__hero">
+          <span class="current__icon" id="current-icon" aria-hidden="true"></span>
+          <div class="current__temps">
+            <p class="current__temp" id="current-temp"></p>
+            <p class="current__desc" id="current-desc"></p>
+            <p class="current__feels" id="current-feels"></p>
+          </div>
+        </div>
+
+        <dl class="stats" id="stats"></dl>
+      </section>
+
+      <section class="card" aria-labelledby="hourly-title">
+        <div class="card__head">
+          <h2 class="card__title" id="hourly-title">Next 24 hours</h2>
+          <p class="legend">
+            <span class="legend__item"><i class="legend__swatch legend__swatch--line" aria-hidden="true"></i>Temperature</span>
+            <span class="legend__item"><i class="legend__swatch legend__swatch--bar" aria-hidden="true"></i>Chance of rain</span>
+          </p>
+        </div>
+        <div class="hourly" id="hourly" tabindex="0" role="group" aria-labelledby="hourly-title"
+             aria-describedby="hourly-desc">
+          <p id="hourly-desc" class="sr-only"></p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="daily-title">
+        <div class="card__head">
+          <h2 class="card__title" id="daily-title">7-day forecast</h2>
+        </div>
+        <ul class="days" id="daily"></ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>
+      Data from <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
+      (<a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener noreferrer">forecast</a> &amp;
+      <a href="https://open-meteo.com/en/docs/geocoding-api" target="_blank" rel="noopener noreferrer">geocoding</a> APIs).
+      Conditions use the WMO 4677 weather-code table. No API key, no tracking, nothing stored.
+    </p>
+  </footer>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

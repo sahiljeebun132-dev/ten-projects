@@ -1,0 +1,74 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<nav class="breadcrumbs"><a href="/admin">Admin</a> &rsaquo; <a href="/admin/orders">Orders</a> &rsaquo; <span><%= order.order_number %></span></nav>
+
+<h1>Order <code><%= order.order_number %></code></h1>
+<p class="muted">
+  Placed <%= order.placed_at %> &middot; <span class="status status-<%= order.status %>"><%= order.status %></span>
+  &middot; <%= order.email %> &middot; simulated payment
+</p>
+
+<div class="checkout-layout">
+  <section class="panel">
+    <h2 style="margin-top:0">Items</h2>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Item</th><th class="num">Unit</th><th class="num">Qty</th><th class="num">Total</th></tr></thead>
+        <tbody>
+          <% items.forEach(function (i) { %>
+            <tr>
+              <td><a href="/products/<%= i.slug %>"><%= i.name %></a></td>
+              <td class="num"><%= money(i.unit_price_cents) %></td>
+              <td class="num"><%= i.quantity %></td>
+              <td class="num"><%= money(i.line_total_cents) %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Ship to</h2>
+    <p class="muted" style="margin:0">
+      <%= order.ship_name %><br>
+      <%= order.ship_line1 %><% if (order.ship_line2) { %><br><%= order.ship_line2 %><% } %><br>
+      <%= order.ship_city %><% if (order.ship_region) { %>, <%= order.ship_region %><% } %><br>
+      <%= order.ship_postal %> &middot; <%= order.ship_country %><br>
+      Method: <%= order.shipping_method %>
+    </p>
+  </section>
+
+  <aside class="panel">
+    <h2 style="margin-top:0">Totals</h2>
+    <ul class="totals">
+      <li><span>Subtotal</span><span><%= money(order.subtotal_cents) %></span></li>
+      <% if (order.discount_cents > 0) { %>
+        <li class="discount"><span>Discount<%= order.promo_code ? ' (' + order.promo_code + ')' : '' %></span><span>&minus;<%= money(order.discount_cents) %></span></li>
+      <% } %>
+      <li><span>Shipping</span><span><%= money(order.shipping_cents) %></span></li>
+      <li><span>Tax</span><span><%= money(order.tax_cents) %></span></li>
+      <li class="total-row"><span>Total</span><span><%= money(order.total_cents) %></span></li>
+    </ul>
+
+    <h2>Status</h2>
+    <% if (!nextStatuses.length) { %>
+      <p class="muted">This order is in a final state (<%= order.status %>).</p>
+    <% } else { %>
+      <form action="/admin/orders/<%= order.id %>/status" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field">
+          <label for="status">Move to</label>
+          <select id="status" name="status" required>
+            <% nextStatuses.forEach(function (s) { %><option value="<%= s %>"><%= s %></option><% }); %>
+          </select>
+        </div>
+        <button class="btn btn-block" type="submit">Update status</button>
+        <p class="hint">Cancelling an order returns its items to stock.</p>
+      </form>
+    <% } %>
+
+    <p style="margin-top:16px"><a class="btn btn-ghost btn-block" href="/admin/orders">Back to orders</a></p>
+  </aside>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,145 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="/">Home</a> &rsaquo;
+  <a href="/products">Products</a> &rsaquo;
+  <a href="/products?category=<%= encodeURIComponent(product.category_slug) %>"><%= product.category_name %></a> &rsaquo;
+  <span><%= product.name %></span>
+</nav>
+
+<div class="product-layout">
+  <div>
+    <div class="gallery-main">
+      <img data-gallery-main src="<%= images[0].url %>" alt="<%= images[0].alt || product.name %>" width="800" height="600">
+    </div>
+    <% if (images.length > 1) { %>
+      <div class="gallery-thumbs">
+        <% images.forEach(function (img, i) { %>
+          <button type="button" data-gallery-thumb data-src="<%= img.url %>" data-alt="<%= img.alt %>"
+                  aria-current="<%= i === 0 ? 'true' : 'false' %>" aria-label="Show image <%= i + 1 %>">
+            <img src="<%= img.url %>" alt="" loading="lazy">
+          </button>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+
+  <div>
+    <p class="eyebrow"><%= product.category_name %></p>
+    <h1 class="product-title"><%= product.name %></h1>
+    <div class="rating-row">
+      <%- include('partials/stars', { rating: product.rating, count: product.rating_count }) %>
+      <a href="#reviews" style="margin-left:10px;font-size:.86rem">Read reviews</a>
+    </div>
+
+    <p class="product-price"><%= money(product.price_cents) %></p>
+
+    <% if (product.stock === 0) { %>
+      <span class="pill pill-out" style="position:static;display:inline-block">Out of stock</span>
+    <% } else if (product.stock <= 10) { %>
+      <span class="pill pill-low" style="position:static;display:inline-block">Low stock &mdash; only <%= product.stock %> left</span>
+    <% } else { %>
+      <span class="pill pill-in" style="position:static;display:inline-block">In stock &mdash; <%= product.stock %> available</span>
+    <% } %>
+
+    <div class="buy-box">
+      <form action="/cart/add" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="product_id" value="<%= product.id %>">
+        <input type="hidden" name="redirect_to" value="/cart">
+        <div class="qty-row">
+          <div>
+            <label for="quantity" style="display:block;font-weight:600;font-size:.88rem;margin-bottom:4px">Quantity</label>
+            <div class="qty-picker" data-qty>
+              <button type="button" data-step="-1" aria-label="Decrease quantity">&minus;</button>
+              <input id="quantity" type="number" name="quantity" value="1" min="1"
+                     max="<%= Math.max(1, Math.min(20, product.stock)) %>" inputmode="numeric">
+              <button type="button" data-step="1" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
+          <button class="btn" type="submit" <%= product.stock === 0 ? 'disabled' : '' %>>
+            <%= product.stock === 0 ? 'Out of stock' : 'Add to basket' %>
+          </button>
+        </div>
+        <p class="muted" style="margin:12px 0 0;font-size:.85rem">
+          Demo store: adding to the basket is free, and the checkout at the end is simulated.
+        </p>
+      </form>
+    </div>
+
+    <h2 style="font-size:1.1rem;margin-bottom:6px">Description</h2>
+    <p><%= product.description %></p>
+
+    <ul class="spec-list">
+      <li><span class="muted">Category</span><span><%= product.category_name %></span></li>
+      <li><span class="muted">Product code</span><span><code><%= product.slug %></code></span></li>
+      <li><span class="muted">Rating</span><span><%= Number(product.rating).toFixed(1) %> / 5 from <%= product.rating_count %> ratings</span></li>
+      <li><span class="muted">Stock</span><span><%= product.stock %> unit<%= product.stock === 1 ? '' : 's' %></span></li>
+      <li><span class="muted">Added</span><span><%= String(product.created_at).slice(0, 10) %></span></li>
+    </ul>
+  </div>
+</div>
+
+<% if (related.length) { %>
+  <div class="section-head"><h2>More from <%= product.category_name %></h2></div>
+  <div class="grid">
+    <% related.forEach(function (p) { %>
+      <%- include('partials/product-card', { p: p }) %>
+    <% }); %>
+  </div>
+<% } %>
+
+<section class="reviews panel" id="reviews">
+  <h2>Reviews (<%= reviews.length %>)</h2>
+
+  <% if (!reviews.length) { %>
+    <p class="muted">No reviews yet for this demo product.</p>
+  <% } %>
+
+  <% reviews.forEach(function (r) { %>
+    <div class="review">
+      <div class="review-head">
+        <%- include('partials/stars', { rating: r.rating, count: null }) %>
+        <strong><%= r.author %></strong>
+        <span class="muted"><%= String(r.created_at).slice(0, 10) %></span>
+      </div>
+      <h4><%= r.title %></h4>
+      <p><%= r.body %></p>
+    </div>
+  <% }); %>
+
+  <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
+
+  <% if (!user) { %>
+    <p><a href="/login">Sign in</a> or <a href="/register">create a demo account</a> to leave a review.</p>
+  <% } else if (alreadyReviewed) { %>
+    <p class="muted">You have already reviewed this product.</p>
+  <% } else { %>
+    <h3 style="margin-top:0">Write a review</h3>
+    <form action="/products/<%= product.slug %>/reviews" method="post" style="max-width:560px">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="rating">Rating</label>
+        <select id="rating" name="rating" required>
+          <option value="5">5 &ndash; Excellent</option>
+          <option value="4">4 &ndash; Good</option>
+          <option value="3">3 &ndash; Okay</option>
+          <option value="2">2 &ndash; Poor</option>
+          <option value="1">1 &ndash; Bad</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="review-title">Title</label>
+        <input id="review-title" type="text" name="title" maxlength="120" placeholder="Sums up your experience">
+      </div>
+      <div class="field">
+        <label for="review-body">Your review</label>
+        <textarea id="review-body" name="body" maxlength="2000" required placeholder="What did you think of this (fictional) product?"></textarea>
+      </div>
+      <button class="btn" type="submit">Post review</button>
+    </form>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

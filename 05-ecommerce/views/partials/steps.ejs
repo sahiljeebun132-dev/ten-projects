@@ -1,0 +1,7 @@
+<ol class="steps" aria-label="Checkout progress">
+  <% [['Address', 1], ['Delivery', 2], ['Demo payment', 3], ['Confirmation', 4]].forEach(function (s) { %>
+    <li class="<%= step === s[1] ? 'current' : (step > s[1] ? 'done' : '') %>">
+      <span class="n"><%= s[1] %></span> <%= s[0] %>
+    </li>
+  <% }); %>
+</ol>

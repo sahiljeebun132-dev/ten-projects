@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Admin &mdash; orders</h1>
+<div class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/products">Products</a>
+  <a href="/admin/products/new">New product</a>
+  <a class="active" href="/admin/orders">Orders</a>
+</div>
+
+<div class="toolbar">
+  <div>
+    <a class="btn btn-small <%= status ? 'btn-ghost' : '' %>" href="/admin/orders">All</a>
+    <% statuses.forEach(function (s) { %>
+      <a class="btn btn-small <%= status === s ? '' : 'btn-ghost' %>" href="/admin/orders?status=<%= s %>"><%= s %></a>
+    <% }); %>
+  </div>
+  <p class="muted" style="margin:0"><%= orders.length %> order<%= orders.length === 1 ? '' : 's' %></p>
+</div>
+
+<section class="panel">
+  <% if (!orders.length) { %>
+    <p class="muted">No demo orders match that filter.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Order</th><th>Placed</th><th>Email</th><th>Items</th><th>Status</th><th class="num">Total</th><th></th></tr></thead>
+        <tbody>
+          <% orders.forEach(function (o) { %>
+            <tr>
+              <td><code><%= o.order_number %></code></td>
+              <td><%= String(o.placed_at).slice(0, 16) %></td>
+              <td><%= o.email %></td>
+              <td><%= o.item_count %></td>
+              <td><span class="status status-<%= o.status %>"><%= o.status %></span></td>
+              <td class="num"><%= money(o.total_cents) %></td>
+              <td><a href="/admin/orders/<%= o.id %>">Open</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>

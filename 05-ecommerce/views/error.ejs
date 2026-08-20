@@ -1,0 +1,14 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<div class="panel empty-state">
+  <p class="eyebrow">Error <%= status %></p>
+  <h1><%= title %></h1>
+  <p class="muted"><%= message %></p>
+  <p style="margin-top:20px">
+    <a class="btn" href="/">Back to the demo store</a>
+    <a class="btn btn-ghost" href="/products">Browse products</a>
+  </p>
+</div>
+
+<%- include('partials/footer') %>

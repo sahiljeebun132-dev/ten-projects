@@ -1,0 +1,19 @@
+<aside class="panel">
+  <h2 style="margin-top:0">Order summary</h2>
+  <% items.forEach(function (line) { %>
+    <div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:.92rem">
+      <span><%= line.quantity %> &times; <%= line.name %></span>
+      <span><%= money(line.line_total_cents) %></span>
+    </div>
+  <% }); %>
+  <ul class="totals" style="border-top:1px solid var(--line);margin-top:10px;padding-top:8px">
+    <li><span>Subtotal</span><span><%= money(totals.subtotal_cents) %></span></li>
+    <% if (totals.discount_cents > 0) { %>
+      <li class="discount"><span>Discount (<%= totals.promo.code %>)</span><span>&minus;<%= money(totals.discount_cents) %></span></li>
+    <% } %>
+    <li><span>Shipping (<%= totals.shippingMethod.label %>)</span><span><%= totals.freeShipping ? 'Free' : money(totals.shipping_cents) %></span></li>
+    <li><span>Tax (<%= (totals.taxRate * 100).toFixed(0) %>%)</span><span><%= money(totals.tax_cents) %></span></li>
+    <li class="total-row"><span>Total</span><span><%= money(totals.total_cents) %></span></li>
+  </ul>
+  <p class="muted" style="font-size:.82rem;margin-bottom:0">Demo totals. Nothing will be charged.</p>
+</aside>

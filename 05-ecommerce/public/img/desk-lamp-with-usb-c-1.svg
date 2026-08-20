@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Desk Lamp with USB-C - placeholder illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="hsl(212 42% 96%)"/>
+      <stop offset="100%" stop-color="hsl(237 46% 88%)"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <g>
+    <circle cx="400" cy="290" r="150" fill="hsl(212 45% 92%)" opacity="0.75"/>
+    <rect x="319" y="190" width="200" height="200" rx="28" fill="hsl(252 70% 62%)"/>
+    <rect x="359" y="230" width="120" height="120" rx="18" fill="hsl(212 45% 92%)" opacity="0.9"/>
+    <circle cx="419" cy="290" r="34" fill="hsl(52 55% 70%)"/>
+  </g>
+  <text x="400" y="492" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" fill="hsl(212 35% 22%)">Desk Lamp with USB-C</text>
+  <text x="400" y="528" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" letter-spacing="2" fill="hsl(212 35% 22%)" opacity="0.65">VIEW 1 OF 3</text>
+  <text x="400" y="52" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" letter-spacing="3" fill="hsl(212 35% 22%)" opacity="0.5">NORTHWIND GOODS &#183; DEMO</text>
+</svg>

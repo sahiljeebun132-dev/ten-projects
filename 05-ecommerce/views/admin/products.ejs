@@ -1,0 +1,63 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<h1>Admin &mdash; products</h1>
+<div class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a class="active" href="/admin/products">Products</a>
+  <a href="/admin/products/new">New product</a>
+  <a href="/admin/orders">Orders</a>
+</div>
+
+<div class="toolbar">
+  <form action="/admin/products" method="get">
+    <label class="sr-only" for="admin-q">Search products</label>
+    <input id="admin-q" type="search" name="q" value="<%= q %>" placeholder="Search by name">
+    <button class="btn btn-small" type="submit">Search</button>
+    <% if (q) { %><a href="/admin/products">Clear</a><% } %>
+  </form>
+  <a class="btn btn-small" href="/admin/products/new">Add product</a>
+</div>
+
+<section class="panel">
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>#</th><th>Name</th><th>Category</th><th class="num">Price</th><th>Stock</th><th>On sale</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% products.forEach(function (p) { %>
+          <tr>
+            <td><%= p.id %></td>
+            <td>
+              <a href="/admin/products/<%= p.id %>/edit"><%= p.name %></a><br>
+              <span class="muted" style="font-size:.82rem"><code><%= p.slug %></code></span>
+            </td>
+            <td><%= p.category_name %></td>
+            <td class="num"><%= money(p.price_cents) %></td>
+            <td>
+              <form class="stock-form" action="/admin/products/<%= p.id %>/stock" method="post">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <label class="sr-only" for="stock-<%= p.id %>">Stock for <%= p.name %></label>
+                <input id="stock-<%= p.id %>" type="number" name="stock" value="<%= p.stock %>" min="0" max="100000">
+                <button class="btn btn-small btn-ghost" type="submit">Set</button>
+              </form>
+            </td>
+            <td><%= p.is_active ? 'Yes' : 'No' %></td>
+            <td>
+              <a href="/products/<%= p.slug %>">View</a>
+              &middot;
+              <form action="/admin/products/<%= p.id %>?_method=DELETE" method="post" class="inline-form"
+                    data-confirm="Delete (or withdraw) this product?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="linkish" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

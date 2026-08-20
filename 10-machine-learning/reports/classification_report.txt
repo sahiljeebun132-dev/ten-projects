@@ -1,0 +1,14 @@
+Model: stacking_ensemble   threshold=0.29
+
+              precision    recall  f1-score   support
+
+        stay     0.8929    0.8103    0.8496      2203
+       churn     0.5824    0.7315    0.6485       797
+
+    accuracy                         0.7893      3000
+   macro avg     0.7377    0.7709    0.7490      3000
+weighted avg     0.8104    0.7893    0.7962      3000
+
+confusion matrix (rows=actual, cols=predicted):
+[[1785  418]
+ [ 214  583]]

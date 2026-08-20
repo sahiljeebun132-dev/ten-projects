@@ -1,0 +1,22 @@
+<%- include('partials/head', { title: title, description: 'Posts by ' + author.name }) %>
+
+<section class="hero">
+  <p class="eyebrow">Author archive</p>
+  <h1><%= author.name %></h1>
+  <% if (author.bio) { %><p class="hero-sub"><%= author.bio %></p><% } %>
+  <p class="hero-sub"><%= total %> published post<%= total === 1 ? '' : 's' %></p>
+</section>
+
+<% if (!posts.length) { %>
+  <p class="empty">This author has not published anything yet.</p>
+<% } %>
+
+<div class="post-grid">
+  <% posts.forEach(function (post) { %>
+    <%- include('partials/post-card', { post: post }) %>
+  <% }); %>
+</div>
+
+<%- include('partials/pagination', { page: page, pages: pages, baseUrl: '/authors/' + slugify(author.name) }) %>
+
+<%- include('partials/footer') %>

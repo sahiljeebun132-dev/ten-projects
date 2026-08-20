@@ -1,0 +1,18 @@
+{
+  "customer_id": "CUST-000001",
+  "tenure_months": 7,
+  "monthly_charges": 71.89,
+  "total_charges": 475.69,
+  "contract_type": "Month-to-month",
+  "payment_method": "Electronic check",
+  "internet_service": "Fiber optic",
+  "num_support_tickets": 1,
+  "avg_monthly_usage_gb": 281.8,
+  "has_streaming": 1,
+  "is_senior": 0,
+  "num_dependents": 1.0,
+  "region": "East",
+  "last_login_days": 4.0,
+  "churn_risk_score_v0": 7.75,
+  "account_flagged_for_review": 0
+}

@@ -1,0 +1,5 @@
+<span class="stars" title="<%= Number(rating).toFixed(1) %> out of 5">
+  <span class="stars-fill" style="width: <%= Math.max(0, Math.min(100, (Number(rating) / 5) * 100)).toFixed(1) %>%">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+  <span class="stars-bg">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+</span>
+<span class="stars-label"><%= Number(rating).toFixed(1) %><% if (typeof count !== 'undefined' && count !== null) { %> (<%= count %>)<% } %></span>

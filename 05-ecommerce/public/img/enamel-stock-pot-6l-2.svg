@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Enamel Stock Pot 6L - placeholder illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="hsl(26 42% 96%)"/>
+      <stop offset="100%" stop-color="hsl(51 46% 88%)"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <g>
+    <rect x="230" y="200" width="340" height="190" rx="24" fill="hsl(26 45% 92%)"/>
+    <path d="M250 380 L360 246 L470 330 L560 250 L560 380 Z" fill="hsl(66 70% 62%)" opacity="0.9"/>
+    <circle cx="316" cy="245" r="30" fill="hsl(226 55% 70%)"/>
+  </g>
+  <text x="400" y="492" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" fill="hsl(26 35% 22%)">Enamel Stock Pot 6L</text>
+  <text x="400" y="528" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" letter-spacing="2" fill="hsl(26 35% 22%)" opacity="0.65">VIEW 2 OF 3</text>
+  <text x="400" y="52" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" letter-spacing="3" fill="hsl(26 35% 22%)" opacity="0.5">NORTHWIND GOODS &#183; DEMO</text>
+</svg>

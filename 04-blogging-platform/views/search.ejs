@@ -1,0 +1,27 @@
+<%- include('partials/head', { title: title, description: 'Search results', query: query }) %>
+
+<section class="hero">
+  <h1>Search</h1>
+  <form class="search-form search-form-large" action="/search" method="get" role="search">
+    <label class="sr-only" for="q-main">Search posts</label>
+    <input id="q-main" type="search" name="q" value="<%= query %>" placeholder="Search titles and body text…" maxlength="80" autofocus>
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <% if (query) { %>
+    <p class="hero-sub"><%= total %> result<%= total === 1 ? '' : 's' %> for “<%= query %>”</p>
+  <% } %>
+</section>
+
+<% if (query && !posts.length) { %>
+  <p class="empty">No posts matched that search.</p>
+<% } %>
+
+<div class="post-grid">
+  <% posts.forEach(function (post) { %>
+    <%- include('partials/post-card', { post: post }) %>
+  <% }); %>
+</div>
+
+<%- include('partials/pagination', { page: page, pages: pages, baseUrl: '/search?q=' + encodeURIComponent(query) }) %>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,92 @@
+<%- include('../partials/head', { title: title }) %>
+
+<section class="dash-header">
+  <div>
+    <p class="eyebrow"><%= isAdmin ? 'Administrator' : 'Author' %> dashboard</p>
+    <h1>Hello, <%= currentUser.name %></h1>
+    <p class="hero-sub"><%= isAdmin ? 'You are viewing every post on the site.' : 'You are viewing your own posts.' %></p>
+  </div>
+  <a class="btn" href="/dashboard/posts/new">+ New post</a>
+</section>
+
+<ul class="stat-row">
+  <li><span class="stat-value"><%= stats.total %></span><span class="stat-label">Posts</span></li>
+  <li><span class="stat-value"><%= stats.published %></span><span class="stat-label">Published</span></li>
+  <li><span class="stat-value"><%= stats.drafts %></span><span class="stat-label">Drafts</span></li>
+  <li><span class="stat-value"><%= stats.views %></span><span class="stat-label">Views</span></li>
+</ul>
+
+<div class="table-wrap">
+  <table class="dash-table">
+    <caption class="sr-only">Posts</caption>
+    <thead>
+      <tr>
+        <th scope="col">Title</th>
+        <% if (isAdmin) { %><th scope="col">Author</th><% } %>
+        <th scope="col">Status</th>
+        <th scope="col">Views</th>
+        <th scope="col">Comments</th>
+        <th scope="col">Updated</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (!posts.length) { %>
+        <tr><td colspan="<%= isAdmin ? 7 : 6 %>" class="empty">No posts yet. <a href="/dashboard/posts/new">Write your first post</a>.</td></tr>
+      <% } %>
+      <% posts.forEach(function (post) { %>
+        <tr>
+          <td>
+            <a href="/posts/<%= post.slug %>"><%= post.title %></a>
+            <% if (post.tags.length) { %>
+              <span class="row-tags"><% post.tags.forEach(function (t) { %>#<%= t.name %> <% }); %></span>
+            <% } %>
+          </td>
+          <% if (isAdmin) { %><td><%= post.author_name %></td><% } %>
+          <td><span class="badge badge-<%= post.status %>"><%= post.status %></span></td>
+          <td><%= post.views %></td>
+          <td><%= post.comment_count %></td>
+          <td><time datetime="<%= post.updated_at %>"><%= formatDate(post.updated_at) %></time></td>
+          <td class="actions">
+            <a class="btn btn-small" href="/dashboard/posts/<%= post.id %>/edit">Edit</a>
+
+            <form class="inline-form" action="/dashboard/posts/<%= post.id %>/toggle" method="post">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-small btn-ghost" type="submit"><%= post.status === 'published' ? 'Unpublish' : 'Publish' %></button>
+            </form>
+
+            <form class="inline-form" action="/dashboard/posts/<%= post.id %>?_method=DELETE" method="post" data-confirm="Delete this post? This cannot be undone.">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-small btn-danger" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<% if (isAdmin) { %>
+  <section class="recent-comments">
+    <h2>Recent comments</h2>
+    <% if (!recentComments.length) { %><p class="empty">No comments yet.</p><% } %>
+    <ul class="comment-list">
+      <% recentComments.forEach(function (comment) { %>
+        <li class="comment">
+          <p class="comment-meta">
+            <strong><%= comment.author_name %></strong>
+            on <a href="/posts/<%= comment.post_slug %>#comments"><%= comment.post_title %></a>
+            <time datetime="<%= comment.created_at %>"><%= formatDate(comment.created_at) %></time>
+          </p>
+          <p class="comment-body"><%= comment.body %></p>
+          <form class="inline-form" action="/comments/<%= comment.id %>?_method=DELETE" method="post" data-confirm="Delete this comment?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="link-button danger" type="submit">Delete</button>
+          </form>
+        </li>
+      <% }); %>
+    </ul>
+  </section>
+<% } %>
+
+<%- include('../partials/footer') %>
