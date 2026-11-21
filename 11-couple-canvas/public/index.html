@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Scribble Us</title>
+  <meta name="description" content="A tiny shared canvas for two phones. Draw on yours, it appears on theirs.">
+  <meta name="theme-color" content="#fff6ee">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Scribble Us">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+  <!-- ============ 1. Setup: name + start / join ============ -->
+  <section id="screen-setup" class="screen" hidden>
+    <div class="setup-card">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><path d="M32 54s-20-12.4-20-27A11 11 0 0 1 32 20a11 11 0 0 1 20 7c0 14.6-20 27-20 27z" fill="#ff6b8b"/><path d="M20 31c4-5 8 3 12-2s8 3 12-2" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/></svg>
+      </div>
+      <h1>Scribble Us</h1>
+      <p class="tagline">A tiny shared canvas for two phones.<br>Draw on yours, it shows up on theirs.</p>
+
+      <label class="field">
+        <span>Your name</span>
+        <input id="name-input" maxlength="24" autocomplete="nickname" placeholder="e.g. Sam" enterkeyhint="done">
+      </label>
+
+      <div id="choice" class="stack">
+        <button id="btn-start" class="btn primary">Start a new pair</button>
+        <button id="btn-have-code" class="btn ghost">I have a code</button>
+      </div>
+
+      <form id="join-form" class="stack" hidden>
+        <label class="field">
+          <span>Partner's code</span>
+          <input id="code-input" class="code-input" maxlength="7" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="ABC123" inputmode="text">
+        </label>
+        <button class="btn primary" type="submit">Connect 💞</button>
+        <button id="btn-back" class="btn ghost" type="button">Back</button>
+      </form>
+
+      <p id="setup-error" class="error" role="alert"></p>
+    </div>
+  </section>
+
+  <!-- ============ 2. Waiting for partner ============ -->
+  <section id="screen-wait" class="screen" hidden>
+    <div class="setup-card">
+      <h2>Send this to your person</h2>
+      <p class="muted">They open Scribble Us, tap <b>I have a code</b>, and type:</p>
+      <div id="invite-code" class="invite-code" aria-live="polite">------</div>
+      <div class="stack">
+        <button id="btn-share" class="btn primary">Share code</button>
+        <button id="btn-copy" class="btn ghost">Copy</button>
+      </div>
+      <p class="waiting"><span class="dot-pulse"></span> Waiting for them to join…</p>
+      <button id="btn-cancel-pair" class="link">Cancel</button>
+    </div>
+  </section>
+
+  <!-- ============ 3. The shared canvas ============ -->
+  <section id="screen-main" class="screen main" hidden>
+    <header class="topbar">
+      <div class="who">
+        <div id="partner-avatar" class="avatar">?</div>
+        <div>
+          <div id="partner-name" class="who-name">Partner</div>
+          <div id="partner-status" class="who-status"><span class="status-dot"></span><span>offline</span></div>
+        </div>
+      </div>
+      <button id="btn-menu" class="icon-btn" aria-label="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+      </button>
+    </header>
+
+    <div id="stage" class="stage">
+      <div id="board" class="board">
+        <canvas id="ink"></canvas>
+        <div id="notes-layer" class="notes-layer"></div>
+        <div id="partner-pen" class="partner-pen" hidden></div>
+        <div id="empty-hint" class="empty-hint">Draw anything ✍️<br><small>it appears on their screen as you go</small></div>
+      </div>
+    </div>
+
+    <div class="tools">
+      <div class="palette" role="radiogroup" aria-label="Colour">
+        <!-- swatches injected by JS -->
+      </div>
+      <div class="toolbar">
+        <button id="tool-size" class="tool" aria-label="Brush size"><span class="size-dot" data-size="1"></span></button>
+        <button id="tool-eraser" class="tool" aria-label="Eraser" aria-pressed="false">
+          <svg viewBox="0 0 24 24"><path d="M16.2 3.8 21 8.6a2 2 0 0 1 0 2.8L12.4 20H7.6l-4.4-4.4a2 2 0 0 1 0-2.8L13.4 3.8a2 2 0 0 1 2.8 0z"/><path d="M8 9.5l7 7M7.6 20H21"/></svg>
+        </button>
+        <button id="tool-undo" class="tool" aria-label="Undo my last line">
+          <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        </button>
+        <button id="tool-clear" class="tool" aria-label="Clear canvas">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+        </button>
+        <span class="spacer"></span>
+        <button id="tool-note" class="tool pill" aria-label="Leave a note">📝 <span>Note</span></button>
+        <button id="tool-heart" class="tool heart" aria-label="Send a heart">💗</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Note composer ============ -->
+  <dialog id="note-dialog" class="sheet">
+    <form method="dialog" id="note-form">
+      <div class="sheet-head">
+        <h3>Leave a little note</h3>
+        <button class="icon-btn" value="cancel" aria-label="Close">✕</button>
+      </div>
+      <div id="note-preview" class="note note-preview">
+        <span class="note-emoji">💌</span>
+        <textarea id="note-text" maxlength="140" rows="3" placeholder="Write something sweet… or weird"></textarea>
+      </div>
+      <div class="row-label">Need inspiration?</div>
+      <div id="note-presets" class="chips"></div>
+      <div class="row-label">Sticker</div>
+      <div id="note-emoji" class="chips emoji-row"></div>
+      <div class="row-label">Paper</div>
+      <div id="note-colors" class="chips"></div>
+      <div class="row-label">Or just…</div>
+      <div class="chips nudges">
+        <button type="button" class="chip" data-nudge="heart">💗 Heart</button>
+        <button type="button" class="chip" data-nudge="kiss">😘 Kiss</button>
+        <button type="button" class="chip" data-nudge="hug">🫂 Hug</button>
+        <button type="button" class="chip" data-nudge="poke">👉 Poke</button>
+      </div>
+      <button id="note-send" class="btn primary wide" value="send">Stick it on their screen</button>
+    </form>
+  </dialog>
+
+  <!-- ============ Settings ============ -->
+  <dialog id="menu-dialog" class="sheet">
+    <form method="dialog">
+      <div class="sheet-head">
+        <h3>Settings</h3>
+        <button class="icon-btn" value="cancel" aria-label="Close">✕</button>
+      </div>
+
+      <div class="setting">
+        <div>
+          <div class="setting-title">Background alerts</div>
+          <div id="push-status" class="setting-sub">Get a notification when they send a note, even if the app is closed.</div>
+        </div>
+        <button id="btn-push" type="button" class="btn small">Turn on</button>
+      </div>
+      <button id="btn-push-test" type="button" class="link" hidden>Send me a test notification</button>
+      <div id="ios-hint" class="hint" hidden>
+        <b>On iPhone:</b> tap the <b>Share</b> button in Safari → <b>Add to Home Screen</b>, then open Scribble Us from your home screen and turn alerts on there.
+      </div>
+
+      <div class="setting">
+        <div>
+          <div class="setting-title">Signed in as</div>
+          <div id="me-name" class="setting-sub">–</div>
+        </div>
+      </div>
+
+      <div class="setting danger">
+        <div>
+          <div class="setting-title">Unpair</div>
+          <div class="setting-sub">Disconnects this phone. When both of you unpair, your canvas and notes are deleted.</div>
+        </div>
+        <button id="btn-unpair" type="button" class="btn small danger">Unpair</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="burst" class="burst" aria-hidden="true"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

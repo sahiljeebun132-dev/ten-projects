@@ -1,6 +1,6 @@
 # Ten Projects
 
-A portfolio of ten self-contained projects — front-end, full-stack, data and machine
+A portfolio of eleven self-contained projects — front-end, full-stack, data and machine
 learning. Every project runs locally with no paid API keys, ships its own README,
 and was smoke-tested end to end before being committed.
 
@@ -16,6 +16,7 @@ and was smoke-tested end to end before being committed.
 | 08 | [Data Analysis](08-data-analysis) | Python + pandas + matplotlib | End-to-end e-commerce analysis: cleaning, RFM, cohorts, stats tests, 14 figures |
 | 09 | [Password Manager](09-password-manager) | Python + cryptography | Offline vault: Argon2id + AES-256-GCM, generator, TOTP, strength audit |
 | 10 | [Machine Learning](10-machine-learning) | Python + scikit-learn + FastAPI | Churn prediction: pipeline, model bake-off, cost-based threshold, REST API |
+| 11 | [Scribble Us](11-couple-canvas) | Express + Socket.IO + SQLite + Web Push (PWA) | Shared canvas for two phones: live mirrored drawing, sticky notes, nudges, background push alerts |
 
 ## Quick start
 
@@ -25,7 +26,7 @@ Each folder is independent. Open its `README.md` for full instructions.
 # Static sites (01, 03)
 cd 01-personal-portfolio && python3 -m http.server 8000
 
-# Node projects (02, 04, 05, 06)
+# Node projects (02, 04, 05, 06, 11)
 cd 04-blogging-platform && npm install && npm run seed && npm start
 
 # Python projects (07, 08, 09, 10)
@@ -47,6 +48,6 @@ cd 10-machine-learning && pip install -r requirements.txt && make all
 ## Verification
 
 Every project was checked before commit: builds and type-checks pass, test suites are
-green (42 / 38 / 294 / 65 tests in projects 07–10, 43 socket assertions in 06), servers
+green (42 / 38 / 294 / 65 tests in projects 07–10, 43 socket assertions in 06, 37 end-to-end checks in 11), servers
 boot and serve their key routes, and the numbers quoted in each README come from real
 runs rather than being written by hand.

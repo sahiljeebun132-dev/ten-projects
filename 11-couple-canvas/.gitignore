@@ -1,0 +1,4 @@
+node_modules/
+# data/ holds the SQLite DB and the auto-generated VAPID *private* key – never commit it.
+data/
+.env
