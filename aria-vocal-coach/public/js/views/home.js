@@ -63,6 +63,7 @@ export function homeView(el) {
         <span class="q-ico">🔥</span><span><b>Daily warm-up</b><br><span class="small muted">2 minutes: hold, siren, scale</span></span>
       </button>
       <a class="card quick" href="#/riyaaz"><span class="q-ico">🪔</span><span><b>Aaj ka riyaaz</b><br><span class="small muted">Tanpura, sargam &amp; your golden-voice meter${gold.score ? ` · ${gold.score}/100` : ''}</span></span></a>
+      <a class="card quick" href="#/live"><span class="q-ico">🎓</span><span><b>Live lesson</b><br><span class="small muted">Your teacher leads 15 minutes and listens to every take</span></span></a>
       <a class="card quick" href="#/teacher"><span class="q-ico">🧑‍🏫</span><span><b>AI vocal teacher</b><br><span class="small muted">Your lesson plan · learn Arijit, Bieber &amp; more</span></span></a>
       <a class="card quick" href="#/coach"><span class="q-ico">🎙️</span><span><b>Live coach</b><br><span class="small muted">Free-sing tuner & note matching</span></span></a>
       <a class="card quick" href="#/songs"><span class="q-ico">🎵</span><span><b>Sing a song</b><br><span class="small muted">Hindi, Bollywood or any song</span></span></a>

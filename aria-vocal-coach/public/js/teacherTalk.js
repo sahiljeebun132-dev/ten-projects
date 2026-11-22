@@ -1,7 +1,7 @@
 // The talking AI teacher — browser side: what the teacher gets to see (your practice data),
 // the reply parser (exercise buttons), streaming from the server, and voice in / voice out.
 import { noteName } from './audio/notes.js';
-import { harmoniumScale } from './audio/sargam.js';
+import { harmoniumScale, swaraName } from './audio/sargam.js';
 import { EXERCISES, stageStatus, goldenVoice, suggestSa } from './data/riyaaz.js';
 import { ALL_LESSONS } from './data/curriculum.js';
 import { diagnose } from './audio/teacher.js';
@@ -19,7 +19,7 @@ export const DRILL_LABELS = {
 const range = (lo, hi) => `${noteName(lo)}–${noteName(hi)}`;
 
 /** Everything the teacher may know about the student — built from saved progress only. */
-export function buildTeacherContext(state, { lessonsPassed = null, nextLesson = null, focusTake = null } = {}) {
+export function buildTeacherContext(state, { lessonsPassed = null, nextLesson = null, unlockedLessons = null, focusTake = null } = {}) {
   const r = state.riyaaz || {};
   const voice = state.voice;
   const sa = r.sa ?? suggestSa(voice);
@@ -39,7 +39,7 @@ export function buildTeacherContext(state, { lessonsPassed = null, nextLesson = 
       bestBreathHoldSec: r.best?.dum || null,
     },
     goldenVoice: { score: gold.score, tier: gold.tier.name, parts: Object.fromEntries(gold.parts.map((p) => [p.label, p.value])) },
-    lessons: { passed: lessonsPassed, next: nextLesson },
+    lessons: { passed: lessonsPassed, next: nextLesson, ...(unlockedLessons ? { unlocked: unlockedLessons } : {}) },
     recentTakes: takes.map((t) => ({
       what: t.title || t.id,
       kind: t.kind,
@@ -69,8 +69,38 @@ export function buildTeacherContext(state, { lessonsPassed = null, nextLesson = 
         breathPerPhraseSec: s.profile.phraseLen,
       })),
   };
+  const pastLessons = (state.teacher?.lessons || []).slice(-3);
+  if (pastLessons.length) {
+    ctx.recentLessons = pastLessons.map((l) => ({
+      daysAgo: Math.max(0, Math.round((Date.now() - l.at) / 86400000)),
+      minutes: l.usedMin ?? l.minutes,
+      focus: l.focus || null,
+      takes: l.takes.length,
+      averageScore: l.takes.length ? Math.round(l.takes.reduce((s, t) => s + t.score, 0) / l.takes.length) : null,
+      recap: l.recap || null,
+    }));
+  }
   if (focusTake) ctx.focusTake = focusTake;
   return ctx;
+}
+
+/**
+ * What the teacher gets back after a take in a live lesson: the summary plus a note-by-note list
+ * (in sargam when the exercise has a Sa) and how long the take ran.
+ */
+export function takeForLesson(p, result, { styleCmp = null, insights = [], seconds = null } = {}) {
+  const label = (m) => (p.sa != null ? `${swaraName(m, p.sa)} (${noteName(m)})` : noteName(m));
+  return {
+    ...summarizeTake(p, result, { styleCmp, insights }),
+    ...(seconds != null ? { durationSec: Math.round(seconds) } : {}),
+    ...(p.sa != null ? { sa: noteName(p.sa) } : {}),
+    noteByNote: result.perNote.slice(0, 40).map((n) => ({
+      note: label(n.midi),
+      hit: n.hit,
+      avgCents: n.voicedFrac > 0.3 ? Math.round(n.meanErr) : null,
+      ...(n.scoop ? { scoop: true } : {}),
+    })),
+  };
 }
 
 /** A compact, teacher-readable summary of one scored take (for "review my take"). */
@@ -160,25 +190,19 @@ export async function teacherStatus() {
   }
 }
 
-/** Stream a reply; calls onText(chunk) as text arrives. Resolves to { stop, model, usage }. */
-export async function streamTeacher({ messages, context, onText, signal }) {
-  const res = await fetch('/api/teacher/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, context }),
-    signal,
-  });
+/** POST JSON and read the NDJSON reply line by line; an `error` line throws. */
+async function postLines(url, body, { signal, onLine }) {
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `The teacher is unavailable (${res.status}).`);
+    throw Object.assign(new Error(data.error || `The teacher is unavailable (${res.status}).`), { status: res.status });
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buf = '';
-  let done = null;
   for (;;) {
-    const { value, done: end } = await reader.read();
-    if (end) break;
+    const { value, done } = await reader.read();
+    if (done) break;
     buf += decoder.decode(value, { stream: true });
     let i;
     while ((i = buf.indexOf('\n')) >= 0) {
@@ -186,12 +210,37 @@ export async function streamTeacher({ messages, context, onText, signal }) {
       buf = buf.slice(i + 1);
       if (!line) continue;
       const msg = JSON.parse(line);
-      if (msg.type === 'text') onText(msg.text);
-      else if (msg.type === 'done') done = msg;
-      else if (msg.type === 'error') throw new Error(msg.error);
+      if (msg.type === 'error') throw new Error(msg.error);
+      onLine(msg);
     }
   }
+}
+
+/** Stream a reply; calls onText(chunk) as text arrives. Resolves to { stop, model, usage }. */
+export async function streamTeacher({ messages, context, onText, signal }) {
+  let done = null;
+  await postLines('/api/teacher/chat', { messages, context }, {
+    signal,
+    onLine: (msg) => {
+      if (msg.type === 'text') onText(msg.text);
+      else if (msg.type === 'done') done = msg;
+    },
+  });
   return done || { stop: 'unknown' };
+}
+
+/**
+ * Teacher-led lessons. Both stream lines to onLine: { type: 'lesson', id } (start only),
+ * 'text' chunks, 'retry' (drop this turn's text so far), 'action' (an exercise to run, or the
+ * lesson's finish), then 'done' with { turn, waiting: 'exercise'|'student'|'finished'|'ended' }.
+ */
+export function startLesson({ minutes, focus, context }, { signal, onLine }) {
+  return postLines('/api/teacher/lesson/start', { minutes, focus, context }, { signal, onLine });
+}
+
+/** The student's side of a lesson turn: { id, turn, result?: { status, take, image, note }, message? }. */
+export function lessonStep(body, { signal, onLine }) {
+  return postLines('/api/teacher/lesson/step', body, { signal, onLine });
 }
 
 // ------------------------------------------------------------------ voice out / voice in

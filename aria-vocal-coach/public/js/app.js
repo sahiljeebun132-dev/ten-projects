@@ -9,6 +9,7 @@ import { songsView } from './views/songs.js';
 import { songView } from './views/song.js';
 import { riyaazView } from './views/riyaaz.js';
 import { teacherView } from './views/teacher.js';
+import { liveView } from './views/live.js';
 import { engine, handoff, updateInputPill } from './engine.js';
 import { state as store, setSetting, resetProgress } from './store.js';
 import { modal, toast } from './ui/dom.js';
@@ -24,8 +25,9 @@ const ROUTES = {
   song: songView,
   riyaaz: riyaazView,
   teacher: teacherView,
+  live: liveView,
 };
-const TAB_FOR = { lesson: 'learn', range: 'home', song: 'songs', coach: 'home' };
+const TAB_FOR = { lesson: 'learn', range: 'home', song: 'songs', coach: 'home', live: 'teacher' };
 
 /** The practice screen belongs to whichever tab opened it. */
 function practiceTab() {
