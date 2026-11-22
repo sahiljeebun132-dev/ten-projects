@@ -97,22 +97,47 @@ function artwork(url) {
   return url.replace(/\/\d+x\d+bb\./, '/300x300bb.');
 }
 
+// Apple storefronts we search. 'in' (India) has the deepest Hindi / Bollywood catalogue.
+export const MARKETS = { in: 'IN', us: 'US', gb: 'GB' };
+// Indian chart shelves -> iTunes genre ids (India storefront top-songs feed).
+export const CHARTS = { bollywood: 1263, indipop: 1185, sufi: 1268, devotional: 1267, classical: 1269, indian: 1262 };
+const CHART_TTL_MS = 30 * 60_000;
+const chartCache = new Map();
+
+function lookup(table, key) {
+  return typeof key === 'string' && Object.hasOwn(table, key) ? table[key] : null;
+}
+
+/** GET JSON from Apple, retrying once on a network blip or 5xx. Returns { status, data }. */
+async function appleJson(url) {
+  let last = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
+      if (r.ok) return { status: r.status, data: await r.json() };
+      last = { status: r.status, data: null };
+      if (r.status < 500) return last;
+    } catch {
+      last = { status: 0, data: null };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+  return last;
+}
+
 async function handleSearch(url, res) {
   const q = (url.searchParams.get('q') || '').trim();
   if (!q || q.length > 100) return json(res, 400, { error: 'Search for 1–100 characters.' });
+  const country = lookup(MARKETS, (url.searchParams.get('market') || 'us').toLowerCase());
+  if (!country) return json(res, 400, { error: 'Unknown market.' });
+  const limit = Math.min(50, Math.max(5, Number(url.searchParams.get('limit')) || 25));
   const api = new URL('https://itunes.apple.com/search');
-  api.search = new URLSearchParams({ term: q, media: 'music', entity: 'song', limit: '25' }).toString();
-  let data;
-  try {
-    const r = await fetch(api, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
-    if (!r.ok) return json(res, 502, { error: `Song search failed (${r.status}).` });
-    data = await r.json();
-  } catch {
-    return json(res, 502, { error: 'Could not reach the song search service. Are you online?' });
-  }
+  api.search = new URLSearchParams({ term: q, media: 'music', entity: 'song', limit: String(limit), country }).toString();
+  const { status, data } = await appleJson(api);
+  if (!data) return json(res, 502, { error: status ? `Song search failed (${status}).` : 'Could not reach the song search service. Are you online?' });
   const results = (Array.isArray(data?.results) ? data.results : [])
     .filter((x) => typeof x.previewUrl === 'string' && isAllowedAppleUrl(x.previewUrl))
-    .slice(0, 18)
+    .slice(0, limit)
     .map((x) => ({
       id: String(x.trackId ?? ''),
       title: String(x.trackName ?? 'Untitled').slice(0, 200),
@@ -123,6 +148,38 @@ async function handleSearch(url, res) {
       previewUrl: x.previewUrl,
       durationMs: Number(x.trackTimeMillis) || 0,
     }));
+  json(res, 200, { results });
+}
+
+/** Map one entry of Apple's legacy RSS top-songs feed to our song shape. */
+export function chartEntry(e) {
+  const links = [].concat(e?.link || []);
+  const enclosure = links.find((l) => l?.attributes?.rel === 'enclosure');
+  const previewUrl = enclosure?.attributes?.href;
+  if (typeof previewUrl !== 'string' || !isAllowedAppleUrl(previewUrl)) return null;
+  const images = [].concat(e?.['im:image'] || []);
+  return {
+    id: String(e?.id?.attributes?.['im:id'] ?? '').slice(0, 40),
+    title: String(e?.['im:name']?.label ?? 'Untitled').slice(0, 200),
+    artist: String(e?.['im:artist']?.label ?? '').slice(0, 200),
+    album: String(e?.['im:collection']?.['im:name']?.label ?? '').slice(0, 200),
+    genre: String(e?.category?.attributes?.label ?? '').slice(0, 60),
+    artwork: artwork(images[images.length - 1]?.label),
+    previewUrl,
+    durationMs: 0,
+  };
+}
+
+async function handleCharts(url, res) {
+  const shelf = url.searchParams.get('shelf') || '';
+  const genre = lookup(CHARTS, shelf);
+  if (!genre) return json(res, 400, { error: 'Unknown chart.' });
+  const cached = chartCache.get(shelf);
+  if (cached && Date.now() - cached.at < CHART_TTL_MS) return json(res, 200, { results: cached.results });
+  const { status, data } = await appleJson(`https://itunes.apple.com/in/rss/topsongs/limit=50/genre=${genre}/json`);
+  if (!data) return json(res, 502, { error: status ? `Chart unavailable (${status}).` : 'Could not reach the charts. Are you online?' });
+  const results = [].concat(data?.feed?.entry || []).map(chartEntry).filter(Boolean).slice(0, 50);
+  chartCache.set(shelf, { at: Date.now(), results });
   json(res, 200, { results });
 }
 
@@ -203,6 +260,7 @@ export function createServer() {
       if (url.pathname.startsWith('/api/')) {
         if (rateLimited(req.socket.remoteAddress || 'unknown')) return json(res, 429, { error: 'Too many requests — slow down a little.' });
         if (url.pathname === '/api/search') return await handleSearch(url, res);
+        if (url.pathname === '/api/charts') return await handleCharts(url, res);
         if (url.pathname === '/api/preview') return await handlePreview(url, req, res);
         return json(res, 404, { error: 'Unknown API route.' });
       }

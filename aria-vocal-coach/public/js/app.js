@@ -7,7 +7,9 @@ import { rangeView } from './views/range.js';
 import { coachView } from './views/coach.js';
 import { songsView } from './views/songs.js';
 import { songView } from './views/song.js';
-import { engine, updateInputPill } from './engine.js';
+import { riyaazView } from './views/riyaaz.js';
+import { teacherView } from './views/teacher.js';
+import { engine, handoff, updateInputPill } from './engine.js';
 import { state as store, setSetting, resetProgress } from './store.js';
 import { modal, toast } from './ui/dom.js';
 
@@ -20,8 +22,18 @@ const ROUTES = {
   coach: coachView,
   songs: songsView,
   song: songView,
+  riyaaz: riyaazView,
+  teacher: teacherView,
 };
-const TAB_FOR = { lesson: 'learn', practice: 'learn', range: 'home', song: 'songs' };
+const TAB_FOR = { lesson: 'learn', range: 'home', song: 'songs', coach: 'home' };
+
+/** The practice screen belongs to whichever tab opened it. */
+function practiceTab() {
+  const back = handoff.practice?.backHref || '';
+  const m = /^#\/(\w+)/.exec(back);
+  const from = m ? m[1] : 'learn';
+  return TAB_FOR[from] || (ROUTES[from] ? from : 'learn');
+}
 
 let cleanup = null;
 
@@ -41,7 +53,7 @@ function route() {
       return p;
     }
   });
-  const tab = TAB_FOR[name] || name;
+  const tab = name === 'practice' ? practiceTab() : TAB_FOR[name] || name;
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === tab));
   const el = document.getElementById('view');
   el.innerHTML = '';
@@ -67,7 +79,14 @@ function openSettings() {
         </div>
         <p class="small dim" style="margin:6px 0 0">The demo voice is a simulated singer — handy to try Aria without a mic.</p>
       </div>
-      <label class="toggle"><span>🗣️ Spoken coaching<br><span class="small dim">Says “higher”, “lower”, “perfect” out loud. Best with headphones.</span></span><input type="checkbox" id="speak" ${s.speak ? 'checked' : ''}></label>
+      <label class="toggle"><span>🗣️ Spoken coaching<br><span class="small dim">Says “higher”, “lower”, “perfect” — and the teacher’s feedback — out loud. Best with headphones.</span></span><input type="checkbox" id="speak" ${s.speak ? 'checked' : ''}></label>
+      <div>
+        <div class="small muted" style="margin-bottom:6px">Note names (riyaaz &amp; songs with a Sa)</div>
+        <div class="seg" id="nota-seg">
+          <button data-v="sargam" class="${s.notation === 'sargam' ? 'on' : ''}">Sa Re Ga (sargam)</button>
+          <button data-v="western" class="${s.notation !== 'sargam' ? 'on' : ''}">C D E (Western)</button>
+        </div>
+      </div>
       <label class="field">Guide volume <input type="range" id="gv" min="0" max="1" step="0.05" value="${s.guideVolume}"></label>
       <label class="field">Song volume <input type="range" id="bv" min="0" max="1" step="0.05" value="${s.backingVolume}"></label>
       <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
@@ -83,6 +102,12 @@ function openSettings() {
     updateInputPill();
   });
   m.el.querySelector('#speak').addEventListener('change', (e) => setSetting('speak', e.target.checked));
+  m.el.querySelector('#nota-seg').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-v]');
+    if (!b) return;
+    setSetting('notation', b.dataset.v);
+    m.el.querySelectorAll('#nota-seg button').forEach((x) => x.classList.toggle('on', x === b));
+  });
   m.el.querySelector('#gv').addEventListener('input', (e) => {
     setSetting('guideVolume', Number(e.target.value));
     engine.guide?.setVolume(Number(e.target.value));

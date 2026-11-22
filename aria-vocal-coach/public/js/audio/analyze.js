@@ -53,5 +53,5 @@ export async function analyzeSong(data, onProgress = () => {}) {
     worker.postMessage({ left, right, sampleRate: ANALYSIS_RATE }, transfer);
   });
 
-  return { buffer, notes: result.notes, key: result.key };
+  return { buffer, notes: result.notes, key: result.key, style: result.style };
 }

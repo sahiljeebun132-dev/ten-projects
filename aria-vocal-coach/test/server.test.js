@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { createServer, isAllowedAppleUrl } from '../server.js';
+import { createServer, isAllowedAppleUrl, chartEntry } from '../server.js';
 
 let server;
 let base;
@@ -57,4 +57,31 @@ test('search validates its input and rejects other methods', async () => {
   assert.equal((await fetch(`${base}/api/search?q=`)).status, 400);
   assert.equal((await fetch(`${base}/api/search?q=${'a'.repeat(101)}`)).status, 400);
   assert.equal((await fetch(`${base}/`, { method: 'POST' })).status, 405);
+});
+
+test('search market and charts shelf are allowlisted (no prototype keys)', async () => {
+  for (const m of ['xx', 'constructor', '__proto__', 'toString']) {
+    assert.equal((await fetch(`${base}/api/search?q=test&market=${m}`)).status, 400, m);
+  }
+  for (const s of ['', 'nope', 'constructor', '__proto__', 'hasOwnProperty']) {
+    assert.equal((await fetch(`${base}/api/charts?shelf=${s}`)).status, 400, s);
+  }
+});
+
+test('chart entries keep only Apple preview links', () => {
+  const entry = (href) => ({
+    'im:name': { label: 'Tum Hi Ho' },
+    'im:artist': { label: 'Arijit Singh' },
+    'im:image': [{ label: 'https://is1-ssl.mzstatic.com/image/thumb/a/170x170bb.png' }],
+    category: { attributes: { label: 'Bollywood' } },
+    id: { attributes: { 'im:id': '123' } },
+    link: [{ attributes: { rel: 'alternate', href: 'https://music.apple.com/x' } }, { attributes: { rel: 'enclosure', href } }],
+  });
+  const ok = chartEntry(entry('https://audio-ssl.itunes.apple.com/itunes-assets/x.m4a'));
+  assert.equal(ok.title, 'Tum Hi Ho');
+  assert.equal(ok.artist, 'Arijit Singh');
+  assert.match(ok.artwork, /300x300bb\.png$/);
+  assert.equal(chartEntry(entry('https://evil.example/x.m4a')), null);
+  assert.equal(chartEntry(entry('http://audio-ssl.itunes.apple.com/x.m4a')), null);
+  assert.equal(chartEntry({}), null);
 });

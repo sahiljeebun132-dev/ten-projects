@@ -27,6 +27,7 @@ export async function ensureContext() {
   }
   if (engine.ctx.state !== 'running') await engine.ctx.resume();
   engine.guide.setVolume(store.settings.guideVolume);
+  engine.guide.setTanpuraVolume(store.settings.tanpuraVolume);
   return engine.ctx;
 }
 

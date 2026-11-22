@@ -2,10 +2,12 @@ import { esc } from '../ui/dom.js';
 import { state as store, tierInfo, nextLesson, practiceRange } from '../store.js';
 import { noteName } from '../audio/notes.js';
 import { buildWarmup } from '../data/curriculum.js';
+import { goldenVoice } from '../data/riyaaz.js';
 import { handoff } from '../engine.js';
 
 export function homeView(el) {
   const tier = tierInfo();
+  const gold = goldenVoice(store.riyaaz, store.voice);
   const next = nextLesson();
   const v = store.voice;
   const sk = store.skills;
@@ -60,8 +62,10 @@ export function homeView(el) {
       <button class="card quick" id="warmup" style="cursor:pointer;text-align:left;color:inherit;font:inherit">
         <span class="q-ico">🔥</span><span><b>Daily warm-up</b><br><span class="small muted">2 minutes: hold, siren, scale</span></span>
       </button>
+      <a class="card quick" href="#/riyaaz"><span class="q-ico">🪔</span><span><b>Aaj ka riyaaz</b><br><span class="small muted">Tanpura, sargam &amp; your golden-voice meter${gold.score ? ` · ${gold.score}/100` : ''}</span></span></a>
+      <a class="card quick" href="#/teacher"><span class="q-ico">🧑‍🏫</span><span><b>AI vocal teacher</b><br><span class="small muted">Your lesson plan · learn Arijit, Bieber &amp; more</span></span></a>
       <a class="card quick" href="#/coach"><span class="q-ico">🎙️</span><span><b>Live coach</b><br><span class="small muted">Free-sing tuner & note matching</span></span></a>
-      <a class="card quick" href="#/songs"><span class="q-ico">🎵</span><span><b>Sing a song</b><br><span class="small muted">Classics or search any song</span></span></a>
+      <a class="card quick" href="#/songs"><span class="q-ico">🎵</span><span><b>Sing a song</b><br><span class="small muted">Hindi, Bollywood or any song</span></span></a>
     </section>
 
     <div class="section-title"><h2>Your skills</h2><span class="small muted">Updated after every take</span></div>

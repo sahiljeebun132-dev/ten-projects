@@ -277,3 +277,45 @@ label.field { display: grid; gap: 6px; font-size: .88rem; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- riyaaz & golden voice ---------- */
+.pill.gold { background: rgba(251, 191, 36, 0.13); border-color: rgba(251, 191, 36, 0.45); color: #fde68a; }
+.gold-card { background: linear-gradient(160deg, rgba(251, 191, 36, 0.15), rgba(249, 115, 22, 0.07) 60%, rgba(168, 85, 247, 0.05)); border-color: rgba(251, 191, 36, 0.32); }
+.gold-text, .gold-num { background: linear-gradient(135deg, #fde68a, #f59e0b 60%, #f97316); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.gold-num { font-size: 2.2rem; font-weight: 900; }
+.bar.gold > span { background: linear-gradient(90deg, #fbbf24, #f97316); }
+.gold-parts .skill { grid-template-columns: minmax(96px, 150px) 1fr 34px; margin: 6px 0; }
+.sa-big { font-size: 2.8rem; font-weight: 900; line-height: 1; }
+.swara-strip { display: flex; flex-wrap: wrap; gap: 4px; }
+.swara-strip span { min-width: 38px; padding: 4px 6px; border-radius: 9px; background: rgba(255, 255, 255, 0.05); font-size: .82rem; font-weight: 800; text-align: center; }
+.swara-strip span small { display: block; font-size: .62rem; color: var(--dim); font-weight: 600; }
+.swara-strip span.sa { background: rgba(251, 191, 36, 0.18); color: #fde68a; }
+.rx-list { display: grid; gap: 8px; }
+.rx-row { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.03); }
+.rx-row.done { border-color: rgba(52, 211, 153, 0.35); background: rgba(52, 211, 153, 0.05); }
+.rx-row .rx-ico { font-size: 1.5rem; width: 36px; text-align: center; flex-shrink: 0; }
+.rx-row .rx-meta { flex: 1; min-width: 0; }
+.rx-row .rx-meta b { display: block; }
+.rx-row .rx-meta > span { display: block; font-size: .82rem; color: var(--muted); }
+.stage-road { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.stage-road > div { text-align: center; padding: 10px 6px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.03); font-size: .78rem; }
+.stage-road > div.on { border-color: rgba(251, 191, 36, 0.6); background: rgba(251, 191, 36, 0.1); }
+.stage-road > div.past { border-color: rgba(52, 211, 153, 0.4); }
+.stage-road .s-ico { font-size: 1.4rem; display: block; }
+@media (max-width: 560px) { .stage-road { grid-template-columns: repeat(3, 1fr); } }
+.locked { opacity: .5; }
+
+/* ---------- AI teacher ---------- */
+.teacher-card { border-color: rgba(34, 211, 238, 0.3); background: linear-gradient(160deg, rgba(34, 211, 238, 0.08), rgba(168, 85, 247, 0.06)); }
+.teacher-say { display: flex; gap: 14px; align-items: flex-start; }
+.teacher-say p { margin: 6px 0 0; }
+.t-avatar { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; font-size: 1.6rem; flex-shrink: 0; background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(34, 211, 238, 0.25)); }
+.t-avatar.happy { background: linear-gradient(135deg, rgba(52, 211, 153, 0.4), rgba(34, 211, 238, 0.25)); }
+.t-avatar.encourage { background: linear-gradient(135deg, rgba(251, 191, 36, 0.35), rgba(236, 72, 153, 0.25)); }
+.focus-item { padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(251, 191, 36, 0.25); background: rgba(255, 255, 255, 0.03); }
+.trait-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: .92rem; }
+.cmp { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .9rem; }
+.cmp th, .cmp td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.cmp th { color: var(--muted); font-weight: 600; font-size: .78rem; }
+select option { background: #151524; }
+#mkt button { padding: 7px 12px; font-size: .82rem; }

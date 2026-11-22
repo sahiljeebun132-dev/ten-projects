@@ -12,6 +12,8 @@ export class PitchCanvas {
     this.future = future;
     this.min = 52;
     this.max = 72;
+    this.tonicPc = 0; // lanes are shaded/lined relative to this pitch class (C, or the singer's Sa)
+    this.labelFn = null; // (midi) => label; defaults to Western note names
     this.resize();
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(canvas);
@@ -103,18 +105,20 @@ export class PitchCanvas {
     g.textBaseline = 'middle';
     for (let m = lo; m <= hi; m++) {
       const yc = this.y(m);
-      if (isBlackKey(m)) {
+      const rel = m - this.tonicPc;
+      const tonic = ((rel % 12) + 12) % 12 === 0;
+      if (isBlackKey(rel)) {
         g.fillStyle = 'rgba(0,0,0,0.28)';
         g.fillRect(GUTTER, yc - lane / 2, w - GUTTER, lane);
       }
-      if (m % 12 === 0) {
-        g.fillStyle = 'rgba(255,255,255,0.07)';
+      if (tonic) {
+        g.fillStyle = this.labelFn ? 'rgba(251,191,36,0.16)' : 'rgba(255,255,255,0.07)';
         g.fillRect(GUTTER, yc + lane / 2 - 1, w - GUTTER, 1);
       }
-      const label = lane >= 13 || m % 12 === 0 || (lane >= 8 && !isBlackKey(m));
+      const label = lane >= 13 || tonic || (lane >= 8 && !isBlackKey(rel));
       if (label) {
-        g.fillStyle = m % 12 === 0 ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.38)';
-        g.fillText(noteName(m), 8, yc);
+        g.fillStyle = tonic ? (this.labelFn ? 'rgba(253,224,71,0.9)' : 'rgba(255,255,255,0.75)') : 'rgba(255,255,255,0.38)';
+        g.fillText(this.labelFn ? this.labelFn(m) : noteName(m), 8, yc);
       }
     }
     g.fillStyle = 'rgba(255,255,255,0.05)';

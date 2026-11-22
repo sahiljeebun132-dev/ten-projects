@@ -4,8 +4,9 @@ import { songById, melodyRange, fitShift, transpose } from '../data/songs.js';
 import { handoff, engine, ensureContext } from '../engine.js';
 import { analyzeSong } from '../audio/analyze.js';
 import { detectKey } from '../audio/key.js';
-import { noteName } from '../audio/notes.js';
-import { practiceRange } from '../store.js';
+import { noteName, NOTE_NAMES } from '../audio/notes.js';
+import { placeSa, shiftToSa, harmoniumScale } from '../audio/sargam.js';
+import { state as store, practiceRange, riyaazSa, styleForArtist, styleById } from '../store.js';
 
 export function songView(el, [rawKey]) {
   const key = rawKey || '';
@@ -75,13 +76,20 @@ export function songView(el, [rawKey]) {
 
   function renderAnalysed() {
     const a = entry.analysis;
-    renderDetail({ title: entry.title, artist: entry.artist, artwork: entry.artwork, notes: a.notes, key: a.key, buffer: a.buffer, bpm: 100 });
+    renderDetail({ title: entry.title, artist: entry.artist, artwork: entry.artwork, notes: a.notes, key: a.key, buffer: a.buffer, bpm: 100, songKey: key });
   }
 
   function renderDetail(song) {
     const range = practiceRange();
     const [lo, hi] = melodyRange(song.notes);
     const shift = fitShift(song.notes, range);
+    const mid = (lo + hi) / 2;
+    const tonic = song.key?.tonic ?? null;
+    const songSa = tonic != null ? placeSa(tonic, mid - 6) : null;
+    const mySa = riyaazSa();
+    const saShift = tonic != null && mySa != null ? shiftToSa(tonic, mid, mySa) : null;
+    const styles = Object.values(store.styles);
+    const autoStyle = styleForArtist(song.artist);
     const oct = 12 * Math.round(shift / 12);
     const fits = lo >= range.low - 1 && hi <= range.high + 1;
     const fitsOct = !fits && oct !== 0 && lo + oct >= range.low - 2 && hi + oct <= range.high + 2;
@@ -97,13 +105,21 @@ export function songView(el, [rawKey]) {
       <div class="card glow stack" style="margin-top:14px">
         ${header(song)}
         <div class="row">
-          ${song.key ? `<span class="pill brand">🎼 Key: ${esc(song.key.name)}</span>` : ''}
+          ${song.key ? `<span class="pill brand">🎼 Key: ${esc(song.key.name)}</span><span class="pill gold">Sa = ${esc(NOTE_NAMES[tonic])} · ${esc(harmoniumScale(tonic))}</span>` : ''}
           <span class="pill">Melody ${noteName(lo)} – ${noteName(hi)}</span>
           <span class="pill">${song.notes.length} notes · ${Math.round(duration)}s</span>
           <span class="pill">Your range ${noteName(range.low)} – ${noteName(range.high)}</span>
         </div>
         <svg class="melody-map" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-label="Melody shape">${melodyMap(song.notes, duration)}</svg>
         <p class="pill ${fitMsg[0]}" style="white-space:normal;display:block;border-radius:12px;padding:10px 12px;margin:0">${esc(fitMsg[1])}</p>
+        ${
+          styles.length
+            ? `<label class="field small">🧑‍🏫 Coach my style like
+                <select id="style-sel"><option value="">— just pitch & timing —</option>${styles
+                  .map((s) => `<option value="${esc(s.id)}" ${autoStyle?.id === s.id ? 'selected' : ''}>${esc(s.singer)}</option>`)
+                  .join('')}</select></label>`
+            : `<p class="small dim" style="margin:0">Tip: teach the <a href="#/teacher">AI teacher</a> this singer’s style and it will coach you on their technique, not just the notes.</p>`
+        }
       </div>
 
       <div class="grid two" style="margin-top:14px">
@@ -123,6 +139,15 @@ export function songView(el, [rawKey]) {
           <button class="btn ${song.buffer ? 'ghost' : ''}" id="mykey">▶ ${song.builtin ? 'Sing with guide' : 'Sing in my key'}</button>
           ${song.builtin ? '<button class="btn ghost" id="solo">🎤 Sing solo (first note only)</button>' : ''}
         </div>
+        ${
+          saShift != null
+            ? `<div class="card stack">
+                <h3>🪔 In my Sa (${esc(noteName(mySa))})</h3>
+                <p class="small muted" style="margin:0">The melody moved ${saShift === 0 ? '(already in your Sa)' : `${saShift > 0 ? 'up' : 'down'} ${Math.abs(saShift)} semitone${Math.abs(saShift) === 1 ? '' : 's'}`} so its Sa is your riyaaz Sa — with the tanpura and sargam, like a real riyaaz session.</p>
+                <button class="btn ghost" id="mysa">▶ Sing in my Sa</button>
+              </div>`
+            : ''
+        }
         <div class="card stack">
           <h3>👂 Listen first</h3>
           <p class="small muted" style="margin:0">Hear the ${song.builtin ? '' : 'detected '}melody played on its own${song.builtin ? '' : ' — a good check of what I heard'}.</p>
@@ -131,9 +156,13 @@ export function songView(el, [rawKey]) {
       </div>`;
 
     const go = (practice) => {
-      handoff.practice = { tolerance: 50, focus: 'song', bpm: song.bpm || 100, backHref: location.hash, ...practice };
-      location.hash = '#/practice';
+      const sid = el.querySelector('#style-sel')?.value;
+      const picked = styleById(sid);
+      const style = picked ? { id: picked.id, singer: picked.singer } : null;
+      handoff.practice = { tolerance: 50, focus: 'song', bpm: song.bpm || 100, backHref: location.hash, style, songKey: song.songKey || song.title, ...practice };
+      location.hash = `#/practice/${Date.now()}`;
     };
+    const saAfter = (s) => (songSa == null ? null : songSa + s);
     el.querySelector('#orig')?.addEventListener('click', () =>
       go({
         title: song.title,
@@ -141,6 +170,8 @@ export function songView(el, [rawKey]) {
         targets: song.notes.map((n) => ({ ...n, role: 'sing' })),
         backing: song.buffer,
         guideOnSing: el.querySelector('#guide-on').checked,
+        sa: songSa,
+        tanpura: false,
       }),
     );
     el.querySelector('#mykey').addEventListener('click', () =>
@@ -150,6 +181,19 @@ export function songView(el, [rawKey]) {
         targets: transpose(song.notes, shift).map((n) => ({ ...n, role: 'sing' })),
         tolerance: song.builtin ? 45 : 50,
         guideOnSing: true,
+        sa: saAfter(shift),
+        tanpura: false,
+      }),
+    );
+    el.querySelector('#mysa')?.addEventListener('click', () =>
+      go({
+        title: song.title,
+        subtitle: `In your Sa (${noteName(mySa)})${saShift ? ` · ${saShift > 0 ? '+' : ''}${saShift} semitones` : ''}`,
+        targets: transpose(song.notes, saShift).map((n) => ({ ...n, role: 'sing' })),
+        tolerance: song.builtin ? 45 : 50,
+        guideOnSing: true,
+        sa: mySa,
+        tanpura: true,
       }),
     );
     el.querySelector('#solo')?.addEventListener('click', () => {
@@ -161,6 +205,8 @@ export function songView(el, [rawKey]) {
         targets: [{ midi: notes[0].midi, start: 0, dur: b * 1.5, role: 'listen' }, ...notes.map((n) => ({ ...n, start: n.start + 3 * b, role: 'sing' }))],
         tolerance: 40,
         guideOnSing: false,
+        sa: saAfter(shift),
+        tanpura: false,
       });
     });
     el.querySelector('#hear').addEventListener('click', async (e) => {

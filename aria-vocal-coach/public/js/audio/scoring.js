@@ -79,6 +79,10 @@ export function scoreTake(frames, targets, { tolerance = 50, attack = 0.12, rele
     let voiced = 0;
     let inTune = 0;
     let onset = null;
+    // Longest unbroken stretch held in tune (brief dropouts < 0.15 s are forgiven).
+    let runStart = null;
+    let lastGood = null;
+    let hold = 0;
     for (let k = fi; k < frames.length && frames[k].t <= w1; k++) {
       const fr = frames[k];
       const tm = targetMidiAt(tg, fr.t);
@@ -87,6 +91,12 @@ export function scoreTake(frames, targets, { tolerance = 50, attack = 0.12, rele
         continue;
       }
       total++;
+      const good = fr.midi != null && Math.abs(pitchError(fr.midi, tm).cents) <= tolerance;
+      if (good) {
+        if (runStart == null || fr.t - lastGood > 0.15) runStart = fr.t;
+        lastGood = fr.t;
+        hold = Math.max(hold, lastGood - runStart);
+      }
       if (fr.midi == null) continue;
       voiced++;
       const e = pitchError(fr.midi, tm);
@@ -122,6 +132,7 @@ export function scoreTake(frames, targets, { tolerance = 50, attack = 0.12, rele
       scoop: early.length >= 2 && avg(early) < -45 && meanErr > -25,
       crescendo: rmsStart > 0 ? rmsEnd / rmsStart : 0,
       vibrato: vib,
+      hold,
     });
     totalFrames += total;
     totalVoiced += voiced;
@@ -169,6 +180,7 @@ export function scoreTake(frames, targets, { tolerance = 50, attack = 0.12, rele
     scoops: perNote.filter((n) => n.scoop).length,
     vibratoNotes: vibratoNotes.length,
     bestCrescendo: Math.round(bestCresc * 100) / 100,
+    longestHold: Math.round(Math.max(0, ...perNote.map((n) => n.hold)) * 10) / 10,
     octaveMode,
     perNote,
   };
