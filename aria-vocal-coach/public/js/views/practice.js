@@ -8,11 +8,13 @@ import { analyzeStyle, compareStyle } from '../audio/style.js';
 import { condense, teacherNote } from '../audio/teacher.js';
 import { PitchCanvas } from '../ui/pitchCanvas.js';
 import { esc, starsHtml, ringHtml, toast } from '../ui/dom.js';
-import { state as store, setSetting, recordAttempt, recordRiyaaz, recordTake, styleById } from '../store.js';
+import { state as store, setSetting, recordAttempt, recordRiyaaz, recordTake, recordProgress, styleById } from '../store.js';
 import { ALL_LESSONS } from '../data/curriculum.js';
 import { stageOf } from '../data/riyaaz.js';
 import { goPractice, riyaazHandoff, nextRiyaaz, styleDrillHandoff } from '../runners.js';
 import { summarizeTake } from '../teacherTalk.js';
+import { takeRecord, logEntry, worthKeeping, pickThen, DAY } from '../progress.js';
+import { saveTake, takesFor } from '../takes.js';
 
 /**
  * @param {HTMLElement} el
@@ -108,6 +110,7 @@ export function practiceView(el, _params = [], opts = {}) {
   let lastCueKind = null;
   let lastCount = null;
   let startedAt = 0;
+  const audioUrls = []; // object URLs for older takes, revoked when the screen goes
 
   el.querySelector('#guide-vol').addEventListener('input', (e) => {
     setSetting('guideVolume', Number(e.target.value));
@@ -273,6 +276,8 @@ export function practiceView(el, _params = [], opts = {}) {
     }
 
     const takeId = p.riyaaz?.id || p.lessonId || p.styleDrill || p.songKey || p.title;
+    const kind = p.riyaaz ? 'riyaaz' : p.lessonId ? 'lesson' : p.focus === 'song' ? 'song' : p.styleDrill ? 'style' : 'exercise';
+    const kept = worthKeeping(result) ? keepTake({ takeId, kind, result, finished, seconds }) : Promise.resolve(null);
     if (embedded) {
       recordTake(condense(result, { id: takeId, kind: p.riyaaz ? 'riyaaz' : p.lessonId ? 'lesson' : p.styleDrill ? 'style' : 'exercise', title: p.title, styleMatch: styleCmp?.match }));
       showEmbeddedResults(result, { gained, styleCmp, styleRec, riy, finished });
@@ -338,6 +343,7 @@ export function practiceView(el, _params = [], opts = {}) {
         ${p.riyaaz && !nextRx ? '<a class="btn" href="#/riyaaz">✅ Today’s riyaaz done</a>' : ''}
         ${passed && next ? `<a class="btn" href="#/lesson/${esc(next.id)}">Next: ${esc(next.title)} →</a>` : ''}
         ${!p.lessonId ? `<a class="btn ghost" href="${esc(p.backHref || '#/home')}">Done</a>` : `<a class="btn ghost" href="#/learn">Lesson path</a>`}
+        <a class="btn ghost" href="#/progress">📈 Your progress</a>
       </div>`;
     box.querySelector('#again').addEventListener('click', () => {
       box.innerHTML = '';
@@ -368,6 +374,45 @@ export function practiceView(el, _params = [], opts = {}) {
     if (url && box.isConnected) {
       box.querySelector('#take').innerHTML = `<h3>🎧 Hear your take</h3><audio controls src="${esc(url)}" style="width:100%"></audio>`;
     }
+    showThen(box, await kept);
+  }
+
+  /** Keep this take in the recordings library and log its numbers. Resolves to the saved record or null. */
+  async function keepTake({ takeId, kind, result, finished, seconds }) {
+    const at = Date.now();
+    recordProgress(logEntry({ key: takeId, kind, at, result }));
+    try {
+      if (finished?.takeReady) await finished.takeReady;
+      const id = globalThis.crypto?.randomUUID?.() || `${at}-${Math.random().toString(36).slice(2)}`;
+      const rec = takeRecord({ id, key: takeId, title: p.title, kind, at, sa: p.sa, targets: p.targets, frames: finished?.frames, result, seconds });
+      return await saveTake(rec, finished?.takeBlob || null);
+    } catch {
+      return null; // no IndexedDB (private window) or the disk is full: the take just isn't kept
+    }
+  }
+
+  /** "You, 23 days ago": an older take of the same exercise to hear beside this one. */
+  async function showThen(box, saved) {
+    if (!saved || disposed || !box.isConnected) return;
+    const then = pickThen(await takesFor(saved.key).catch(() => []), saved, 30);
+    const slot = box.querySelector('#take');
+    if (!then || !slot || disposed) return;
+    const days = Math.round((saved.at - then.at) / DAY);
+    const d = saved.stats.score - then.stats.score;
+    let audio = '';
+    if (then.audio) {
+      const u = URL.createObjectURL(then.audio);
+      audioUrls.push(u);
+      audio = `<audio controls src="${esc(u)}" style="width:100%" aria-label="Your take from ${days} days ago"></audio>`;
+    }
+    slot.insertAdjacentHTML(
+      'beforeend',
+      `<div class="then-line">
+        <h3>⏪ You, ${days} days ago</h3>
+        <p class="small muted" style="margin:0 0 8px">Score ${Number(then.stats.score)} then, ${Number(saved.stats.score)} today${d ? ` <span class="pill ${d > 0 ? 'good' : 'warn'}">${d > 0 ? '+' : ''}${d}</span>` : ''} · <a href="#/progress">compare in Your progress</a></p>
+        ${audio || '<p class="small dim" style="margin:0">That take was sung with the demo voice, so there’s no recording.</p>'}
+      </div>`,
+    );
   }
 
   /** Inside a lesson: the score and the note strip; the teacher gives the feedback. */
@@ -403,6 +448,7 @@ export function practiceView(el, _params = [], opts = {}) {
 
   return () => {
     disposed = true;
+    audioUrls.forEach((u) => URL.revokeObjectURL(u));
     session?.stop();
     engine.guide?.stopTanpura();
     canvas.destroy();

@@ -6,8 +6,8 @@
 //    redirects disabled, a size cap and a content-type check — it is not an open proxy.
 //  - Static files are resolved inside ./public only (no path traversal).
 //  - Binds to 127.0.0.1 by default; browsers only allow the microphone on localhost/https.
-//  - The Claude API key never leaves this process. /api/teacher/chat and /api/teacher/lesson/*
-//    accept only same-origin JSON POSTs addressed to localhost (Host allowlist stops DNS
+//  - The Claude API key never leaves this process. /api/teacher/chat, /api/teacher/compare and
+//    /api/teacher/lesson/* accept only same-origin JSON POSTs addressed to localhost (Host allowlist stops DNS
 //    rebinding; the exact Origin check stops other websites from spending your key), with size,
 //    rate and daily caps. Lesson transcripts stay in this process, keyed by unguessable ids.
 
@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 import { teacherConfig, credentialsConfigured, validateChat, streamTeacherReply } from './teacher-chat.js';
 import { createLessonStore, validateLessonStart, validateLessonStep, stepMessage, runLessonTurn, MAX_TURNS } from './teacher-lesson.js';
+import { COMPARE_SYSTEM, validateCompare, compareMessages } from './teacher-compare.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -261,6 +262,7 @@ async function handleStatic(url, req, res) {
 
 const MAX_CHAT_BODY = 64 * 1024;
 const MAX_LESSON_BODY = 512 * 1024; // a lesson step can carry the pitch picture (PNG)
+const MAX_COMPARE_BODY = 512 * 1024; // then & now carries two pitch pictures
 
 /** Reject anything that isn't the app itself, on this machine, talking to us. */
 export function localSameOrigin(req) {
@@ -369,6 +371,25 @@ function makeTeacher({ env, teacherClient }) {
     res.end();
   }
 
+  // ---- then & now: two takes' numbers and pitch pictures in, the teacher's comparison out.
+
+  async function compare(req, res) {
+    const got = await admit(req, res, MAX_COMPARE_BODY);
+    if (!got) return;
+    const v = validateCompare(got.body);
+    if (v.error) return json(res, 400, { error: v.error });
+    day.count++;
+
+    const { line, abort } = openStream(res);
+    try {
+      const out = await streamTeacherReply({ client: getClient(), config, system: COMPARE_SYSTEM, requestMessages: compareMessages(v), signal: abort.signal, send: line });
+      line({ type: 'done', stop: out.stop, model: out.model, usage: out.usage });
+    } catch (err) {
+      if (!(err instanceof Anthropic.APIUserAbortError) && !abort.signal.aborted) line({ type: 'error', error: teacherErrorMessage(err) });
+    }
+    res.end();
+  }
+
   // ---- teacher-led lessons: the transcript stays here; the browser sends takes and replies.
 
   async function runTurn(res, lesson, userMessage, { start = false } = {}) {
@@ -446,7 +467,7 @@ function makeTeacher({ env, teacherClient }) {
     res.end();
   }
 
-  return { status, chat, lessonStart, lessonStep };
+  return { status, chat, compare, lessonStart, lessonStep };
 }
 
 function rateLimitedIn(map, key, limit, windowMs = 60_000) {
@@ -470,7 +491,12 @@ export function createServer({ env = process.env, teacherClient = null } = {}) {
   return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || '/', 'http://localhost');
-      const post = { '/api/teacher/chat': teacher.chat, '/api/teacher/lesson/start': teacher.lessonStart, '/api/teacher/lesson/step': teacher.lessonStep };
+      const post = {
+        '/api/teacher/chat': teacher.chat,
+        '/api/teacher/compare': teacher.compare,
+        '/api/teacher/lesson/start': teacher.lessonStart,
+        '/api/teacher/lesson/step': teacher.lessonStep,
+      };
       if (Object.hasOwn(post, url.pathname)) {
         if (req.method !== 'POST') return send(res, 405, 'Method not allowed', { Allow: 'POST' });
         return await post[url.pathname](req, res);

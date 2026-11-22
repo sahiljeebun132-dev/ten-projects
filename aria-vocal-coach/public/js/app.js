@@ -10,6 +10,8 @@ import { songView } from './views/song.js';
 import { riyaazView } from './views/riyaaz.js';
 import { teacherView } from './views/teacher.js';
 import { liveView } from './views/live.js';
+import { progressView } from './views/progress.js';
+import { clearTakes } from './takes.js';
 import { engine, handoff, updateInputPill } from './engine.js';
 import { state as store, setSetting, resetProgress } from './store.js';
 import { modal, toast } from './ui/dom.js';
@@ -26,8 +28,9 @@ const ROUTES = {
   riyaaz: riyaazView,
   teacher: teacherView,
   live: liveView,
+  progress: progressView,
 };
-const TAB_FOR = { lesson: 'learn', range: 'home', song: 'songs', coach: 'home', live: 'teacher' };
+const TAB_FOR = { lesson: 'learn', range: 'home', song: 'songs', coach: 'home', live: 'teacher', progress: 'home' };
 
 /** The practice screen belongs to whichever tab opened it. */
 function practiceTab() {
@@ -92,7 +95,7 @@ function openSettings() {
       <label class="field">Guide volume <input type="range" id="gv" min="0" max="1" step="0.05" value="${s.guideVolume}"></label>
       <label class="field">Song volume <input type="range" id="bv" min="0" max="1" step="0.05" value="${s.backingVolume}"></label>
       <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
-      <p class="small dim" style="margin:0">Progress is saved in this browser only. Audio never leaves your device — song search just asks Apple’s public catalogue for previews.</p>
+      <p class="small dim" style="margin:0">Progress and your recordings are saved in this browser only. Audio never leaves your device — song search just asks Apple’s public catalogue for previews, and the AI teacher sees your scores and pitch pictures, not your recordings.</p>
       <div class="row between"><button class="btn danger small" id="reset">Reset all progress</button><button class="btn small" id="done">Done</button></div>
     </div>`);
   m.el.querySelector('#input-seg').addEventListener('click', (e) => {
@@ -120,8 +123,9 @@ function openSettings() {
     route();
   });
   m.el.querySelector('#reset').addEventListener('click', () => {
-    if (!confirm('Reset all lessons, XP, streak and your saved voice range? This cannot be undone.')) return;
+    if (!confirm('Reset all lessons, XP, streak, your saved voice range and your recordings? This cannot be undone.')) return;
     resetProgress();
+    clearTakes().catch(() => {});
     m.close();
     toast('Progress reset', 'good');
     location.hash = '#/home';

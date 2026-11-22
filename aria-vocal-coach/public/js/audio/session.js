@@ -17,6 +17,7 @@ export class PracticeSession {
     this.noteLive = targets.map(() => ({ frames: 0, inTune: 0 }));
     this.running = false;
     this.takeUrl = null;
+    this.takeBlob = null;
   }
 
   get duration() {
@@ -49,12 +50,18 @@ export class PracticeSession {
     }
     if (this.record && input.kind === 'mic' && input.stream && window.MediaRecorder) {
       try {
-        this.recorder = new MediaRecorder(input.stream);
+        // A voice needs far less than the default bitrate; small takes let Aria keep months of them.
+        try {
+          this.recorder = new MediaRecorder(input.stream, { audioBitsPerSecond: 48_000 });
+        } catch {
+          this.recorder = new MediaRecorder(input.stream);
+        }
         const chunks = [];
         this.recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
         this.takeReady = new Promise((resolve) => {
           this.recorder.onstop = () => {
-            this.takeUrl = chunks.length ? URL.createObjectURL(new Blob(chunks, { type: this.recorder.mimeType })) : null;
+            this.takeBlob = chunks.length ? new Blob(chunks, { type: this.recorder.mimeType }) : null;
+            this.takeUrl = this.takeBlob ? URL.createObjectURL(this.takeBlob) : null;
             resolve(this.takeUrl);
           };
         });

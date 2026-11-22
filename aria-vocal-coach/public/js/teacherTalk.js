@@ -6,6 +6,7 @@ import { EXERCISES, stageStatus, goldenVoice, suggestSa } from './data/riyaaz.js
 import { ALL_LESSONS } from './data/curriculum.js';
 import { diagnose } from './audio/teacher.js';
 import { signature } from './audio/style.js';
+import { progressSummary } from './progress.js';
 
 export const DRILL_LABELS = {
   murki: '🌀 Murki drill',
@@ -80,6 +81,8 @@ export function buildTeacherContext(state, { lessonsPassed = null, nextLesson = 
       recap: l.recap || null,
     }));
   }
+  const progress = progressSummary(state.progress?.log);
+  if (progress) ctx.progress = progress;
   if (focusTake) ctx.focusTake = focusTake;
   return ctx;
 }
@@ -220,6 +223,23 @@ async function postLines(url, body, { signal, onLine }) {
 export async function streamTeacher({ messages, context, onText, signal }) {
   let done = null;
   await postLines('/api/teacher/chat', { messages, context }, {
+    signal,
+    onLine: (msg) => {
+      if (msg.type === 'text') onText(msg.text);
+      else if (msg.type === 'done') done = msg;
+    },
+  });
+  return done || { stop: 'unknown' };
+}
+
+/**
+ * Then & now: the teacher compares an old take with a recent one of the same exercise.
+ * body: { exercise, daysApart, then: { take, image? }, now: { take, image? }, context? } — numbers and
+ * pitch pictures only, never audio. Calls onText(chunk) as the reply streams in.
+ */
+export async function compareTakes(body, { onText, signal }) {
+  let done = null;
+  await postLines('/api/teacher/compare', body, {
     signal,
     onLine: (msg) => {
       if (msg.type === 'text') onText(msg.text);
