@@ -20,7 +20,9 @@ const FOCUSES = [
   ['High notes and the break between chest and head voice', '🕊️ High notes & the break'],
   ['Murkis, runs and agility', '⚡ Murkis & runs'],
 ];
-const MAX_IMAGE = 190_000; // base64 characters; the server accepts up to 200 000
+const MAX_IMAGE = 190_000;
+/** A number for display, whatever was saved (logs come back from browser storage). */
+const num = (v, lo = 0, hi = Infinity) => Math.min(hi, Math.max(lo, Math.round(Number(v)) || 0)); // base64 characters; the server accepts up to 200 000
 const SAVE_KEY = 'aria.liveLesson'; // this tab's lesson, so a reload can pick it up again
 
 // ------------------------------------------------------------------ the lesson (outlives the screen)
@@ -328,10 +330,11 @@ export function liveView(root) {
   }
 
   function pastCard(l) {
-    const avg = l.takes.length ? Math.round(l.takes.reduce((s, t) => s + t.score, 0) / l.takes.length) : null;
+    const takes = Array.isArray(l.takes) ? l.takes : [];
+    const avg = takes.length ? num(takes.reduce((s, t) => s + num(t.score), 0) / takes.length) : null;
     return `<div class="card stack">
       <div class="row between"><b>${esc(new Date(l.at).toLocaleDateString())}${l.focus ? ` · ${esc(l.focus)}` : ''}</b>
-        <span class="small muted">${l.usedMin ?? l.minutes} min · ${l.takes.length} take${l.takes.length === 1 ? '' : 's'}${avg != null ? ` · average ${avg}` : ''}</span></div>
+        <span class="small muted">${num(l.usedMin ?? l.minutes)} min · ${takes.length} take${takes.length === 1 ? '' : 's'}${avg != null ? ` · average ${avg}` : ''}</span></div>
       ${l.recap ? `<p class="small muted" style="margin:0">${esc(l.recap)}</p>` : ''}
       ${l.homework?.length ? `<div class="row">${l.homework.map((h) => `<button class="btn small ghost" data-hw="${esc(h.kind)}|${esc(h.styleId || '')}|${esc(h.id)}">${esc(refLabel(h))}</button>`).join('')}</div>` : ''}
     </div>`;
@@ -371,7 +374,10 @@ export function liveView(root) {
     const entryHtml = (e) => {
       if (e.role === 'teacher') return `<div class="msg teacher"><div class="t-avatar small" aria-hidden="true">🧑‍🏫</div><div class="msg-body">${textHtml(e.text) || typing}</div></div>`;
       if (e.role === 'student') return `<div class="msg user"><div class="msg-body">${textHtml(e.text)}</div></div>`;
-      if (e.role === 'take') return `<div class="take-row">🎤 ${esc(e.title)} <b>${e.score}</b><span class="stars-mini">${'★'.repeat(e.stars)}${'☆'.repeat(3 - e.stars)}</span></div>`;
+      if (e.role === 'take') {
+        const stars = num(e.stars, 0, 3);
+        return `<div class="take-row">🎤 ${esc(e.title)} <b>${num(e.score, 0, 100)}</b><span class="stars-mini">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</span></div>`;
+      }
       if (e.role === 'skip') return `<div class="take-row dim">⏭️ ${esc(e.title)} skipped</div>`;
       return `<div class="take-row info">ℹ️ ${esc(e.text)}</div>`;
     };
@@ -481,7 +487,7 @@ export function liveView(root) {
 
     function recapHtml() {
       const r = current.recap;
-      const scores = current.takes.map((t) => t.score);
+      const scores = current.takes.map((t) => num(t.score, 0, 100));
       const avg = scores.length ? Math.round(scores.reduce((s, x) => s + x, 0) / scores.length) : null;
       return `
         <div class="card gold-card stack">
