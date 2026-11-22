@@ -8,14 +8,14 @@ Aria listens to your voice in real time and coaches you from your very first not
 cd aria-vocal-coach
 npm install        # one dependency: the official Anthropic SDK (for the talking teacher)
 npm start          # → http://localhost:5190
-npm test           # 75 tests: pitch, melody, scoring, coach, riyaaz, style learning, teacher, chat, live lessons, server security
+npm test           # 87 tests: pitch, melody, scoring, coach, riyaaz, style learning, teacher, chat, live lessons, progress, server security
 ```
 
 Node 20+. Open the URL in Chrome/Edge and allow the microphone. **Headphones give the most accurate coaching** (the mic won't hear the guide tones or tanpura). No mic? Settings → **Demo voice** runs a simulated singer so you can try everything.
 
 ### Switch on the talking teacher (optional)
 
-Everything except the chat and live lessons works offline. To talk to the teacher or take a live lesson, give Aria a Claude API key (from console.anthropic.com) when you start it:
+Everything except the chat, live lessons and the teacher's "What changed?" works offline. To use those, give Aria a Claude API key (from console.anthropic.com) when you start it:
 
 ```powershell
 $env:ANTHROPIC_API_KEY = "sk-ant-..."; npm start
@@ -37,6 +37,7 @@ The key stays in the server process — the browser never sees it. Each question
 | **✨ Golden-voice meter** | Seven parts of a trained voice — Sur, Thehraav, Dum, Vistaar, Kharaj, Pul (smooth break), Niyam (consistency) — that fill up with weeks of practice, not one good take. |
 | **Beginner → Master path** | 5 levels × 4 lessons: breath, pitch matching, sirens, scales, intervals, arpeggios, crescendo, vibrato, agility runs, chromatic precision and solo songs. |
 | **Songs — Hindi & world** | Search Apple's India or global catalogue (Devanagari works too), browse live Indian charts (Bollywood, Indian Pop, Sufi & Ghazals, Bhakti, Classical) or tap a singer. Aria extracts the sung melody from the track, detects its key and Sa, and coaches you: with the original, in your key, or **in your Sa** with the tanpura. Upload full songs or a cappella files too. |
+| **📈 Progress you can hear** | Aria keeps your recordings in the browser: for each exercise or song, your first take, your best, your latest three and your best of each week for six months (star any take to keep it for good). **Then & now** puts where you started beside your latest take — play both, see both pitch lines and the score change — and **What changed?** has the teacher (Claude) compare them from their numbers and pitch pictures. Week-by-week charts show in tune, steadiness and timing over 12 weeks, every results screen offers *“You, 23 days ago”*, and once a month the home screen invites you to hear how far you've come. |
 | **Progress** | XP, streaks, skill bars, unlockable lessons and riyaaz stages, learned styles — saved in the browser. |
 
 ## How the audio works
@@ -46,17 +47,20 @@ The key stays in the server process — the browser never sees it. Each question
 - `public/js/audio/style.js` — vocal style analysis from any pitch track (held notes, vibrato, ornament turns, slides, scoops, phrasing), profile aggregation, comparison and style drills.
 - `public/js/audio/teacher.js` — the teacher's reasoning: condensed take memory, diagnosis across takes, lesson plans, post-take feedback.
 - `teacher-lesson.js` (server) — live lessons: Claude gets two tools, `start_exercise` and `finish_lesson`, which the browser carries out. Every tool call is checked against the exercise catalogue and what the student has unlocked; a bad call goes back to Claude to fix. The transcript stays on the server and only grows (Claude's thinking goes back unchanged). Every take adds the score, the note-by-note list and a PNG of the pitch line (`public/js/ui/takeImage.js`).
+- `public/js/progress.js` / `takes.js` — the recordings library: what each take keeps (48 kbps audio, the pitch line at 20 points a second, the numbers), which recordings stay (capped at 400 takes / 80 MB, pruned after every save), weekly trends and then-and-now pairs. Stored in IndexedDB; nothing is uploaded.
+- `teacher-compare.js` (server) — **What changed?**: both takes' numbers and pitch pictures go to Claude in one request, never the audio.
 - `public/js/data/riyaaz.js` / `audio/sargam.js` — riyaaz exercises built around your Sa (always kept within your measured range ±1 semitone), stages, the golden-voice meter, sargam naming and harmonium scales.
 - `public/js/audio/guide.js` — guide tones and the tanpura (Pa–Sa–Sa–Sa cycle with a jawari-like buzz).
 
 ## Honest limits
 
-- **Two kinds of teacher.** The lesson plan, diagnosis, style learning and post-take feedback are on-device analysis — rules a voice teacher would use, no AI service involved. The **talking teacher** and **live lessons** are Claude: the server sends your question, the recent conversation and a compact summary of your practice data (numbers like scores and ranges — never audio) to Anthropic's API, and in a live lesson each take's numbers plus a picture of your pitch line. It can't hear you; it reasons from those measurements and the picture, and its answers are AI-generated.
+- **Two kinds of teacher.** The lesson plan, diagnosis, style learning and post-take feedback are on-device analysis — rules a voice teacher would use, no AI service involved. The **talking teacher** and **live lessons** are Claude: the server sends your question, the recent conversation and a compact summary of your practice data (numbers like scores and ranges — never audio) to Anthropic's API, in a live lesson each take's numbers plus a picture of your pitch line, and for **What changed?** two takes' numbers and pictures. Your recordings never leave the browser. It can't hear you; it reasons from those measurements and the picture, and its answers are AI-generated.
 - **It teaches technique, it doesn't clone voices.** Style profiles describe how someone sings; Aria never imitates or synthesises a real artist's voice.
 - **Style from previews is approximate.** Profiles come from the melody extracted from 30-second mixed previews (or your files). Clear lead vocals work best; dense mixes add noise. Breath per phrase can't be seen inside a full mix (the backing hides the breaths), so it's left out rather than guessed — a cappella files give the fullest profile.
+- **Recordings live in this browser.** Clearing site data, a private window or the browser freeing space can remove them; the weekly chart's numbers are kept separately and survive deleting recordings.
 - **Voice safety.** Riyaaz never pushes more than a semitone past your measured range, and the app says plainly: never “break” the voice by shouting or forcing. Pain or hoarseness lasting two weeks needs an ENT doctor.
 - Song search covers Apple's preview catalogue only (no YouTube downloading — that breaks YouTube's terms). Mic access needs `localhost` or HTTPS, so for a phone, host it behind HTTPS.
 
 ## Security
 
-The server only serves `public/` (path-traversal safe), sends a strict CSP and security headers, and its audio proxy fetches **only** HTTPS Apple preview hosts (no redirects, size and type limits), so it can't be abused as an open proxy. The Claude key lives only in the server process. `/api/teacher/chat` and `/api/teacher/lesson/*` answer only same-origin JSON POSTs addressed to localhost (a Host allowlist blocks DNS rebinding; an exact Origin check and a JSON-only content type stop other websites from spending your key), with body caps (64 KB; 512 KB for a lesson step carrying the pitch PNG), strict validation, per-minute and daily limits (every Claude call in a lesson counts, max 40 per lesson); lesson transcripts stay in server memory under unguessable ids, so the browser only ever adds the student's side; practice data is sent as data in the user turn, never as instructions, and exercise buttons in replies are allowlisted. Search markets and chart shelves are fixed allowlists (own-key lookups, so `constructor` / `__proto__` can't slip through); chart and search results keep only Apple preview links. All song metadata and singer names are HTML-escaped before rendering.
+The server only serves `public/` (path-traversal safe), sends a strict CSP and security headers, and its audio proxy fetches **only** HTTPS Apple preview hosts (no redirects, size and type limits), so it can't be abused as an open proxy. The Claude key lives only in the server process. `/api/teacher/chat`, `/api/teacher/compare` and `/api/teacher/lesson/*` answer only same-origin JSON POSTs addressed to localhost (a Host allowlist blocks DNS rebinding; an exact Origin check and a JSON-only content type stop other websites from spending your key), with body caps (64 KB; 512 KB for a lesson step or a comparison carrying pitch PNGs, which must be real PNGs under 150 KB), strict validation, per-minute and daily limits (every Claude call in a lesson counts, max 40 per lesson); lesson transcripts stay in server memory under unguessable ids, so the browser only ever adds the student's side; practice data is sent as data in the user turn, never as instructions, and exercise buttons in replies are allowlisted. Search markets and chart shelves are fixed allowlists (own-key lookups, so `constructor` / `__proto__` can't slip through); chart and search results keep only Apple preview links. All song metadata and singer names are HTML-escaped before rendering.

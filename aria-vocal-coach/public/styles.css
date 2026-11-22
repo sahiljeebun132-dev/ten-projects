@@ -364,3 +364,37 @@ select option { background: #151524; }
 .ready-list a { color: var(--accent); }
 @media (max-width: 560px) { .live-head { flex-wrap: wrap; } .live-log { max-height: 50vh; } }
 .live-cta .q-ico { font-size: 1.7rem; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.06); flex-shrink: 0; }
+
+/* ---------- progress: then & now, recordings, weekly chart ---------- */
+.then-line { margin-top: 14px; }
+.pair-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 12px; }
+.pair-side { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 8px; align-content: start; }
+.pair-score { display: flex; align-items: baseline; gap: 6px; }
+.pair-score b { font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.pitch-pic { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.stat .delta { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+.stat .delta.up { color: var(--good); }
+.stat .delta.down { color: var(--warn); }
+.lib-group summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; list-style-position: inside; }
+.lib-rows { margin-top: 10px; display: grid; gap: 8px; }
+.lib-row { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr) auto; gap: 10px; align-items: center; padding-top: 8px; border-top: 1px solid var(--line); }
+.lib-row audio { width: 100%; }
+@media (max-width: 560px) { .lib-row { grid-template-columns: 1fr auto; } .lib-row .lib-audio { grid-column: 1 / -1; grid-row: 2; } }
+.viz-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; color: var(--muted); margin-bottom: 8px; }
+.viz-legend i { display: inline-block; width: 16px; height: 2px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.viz-wrap { position: relative; }
+.viz-plot svg { display: block; overflow: visible; outline: none; touch-action: pan-y; }
+.viz-plot svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+.viz-grid { stroke: rgba(255, 255, 255, 0.08); stroke-width: 1; }
+.viz-axis { fill: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+.viz-label { fill: var(--muted); font-size: 11.5px; font-weight: 600; }
+.viz-dot { stroke: #151520; stroke-width: 2; }
+.viz-cross { stroke: rgba(255, 255, 255, 0.35); stroke-width: 1; pointer-events: none; }
+.viz-tip { position: absolute; top: 4px; min-width: 150px; padding: 8px 10px; border-radius: 10px; background: #1c1c2a; border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); pointer-events: none; font-size: .85rem; }
+.viz-tip-row { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+.viz-tip-row i { display: inline-block; width: 12px; height: 2px; border-radius: 2px; }
+.viz-tip-row b { font-variant-numeric: tabular-nums; min-width: 36px; }
+.viz-tip-row span { color: var(--muted); }
+.viz-table { margin-top: 10px; }
+.viz-table summary { cursor: pointer; }
+.viz-table table { margin-top: 8px; }

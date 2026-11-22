@@ -4,6 +4,8 @@ import { noteName } from '../audio/notes.js';
 import { buildWarmup } from '../data/curriculum.js';
 import { goldenVoice } from '../data/riyaaz.js';
 import { handoff } from '../engine.js';
+import { listTakes } from '../takes.js';
+import { thenAndNow, monthlyNudge } from '../progress.js';
 
 export function homeView(el) {
   const tier = tierInfo();
@@ -50,6 +52,8 @@ export function homeView(el) {
       </div>
     </section>
 
+    <div id="then-now"></div>
+
     <section class="grid four" style="margin-top:14px">
       <div class="card stat"><div class="num">🔥 ${store.streak.count}</div><div class="lbl">day streak</div></div>
       <div class="card stat"><div class="num">${store.xp}</div><div class="lbl">XP earned</div></div>
@@ -67,9 +71,10 @@ export function homeView(el) {
       <a class="card quick" href="#/teacher"><span class="q-ico">🧑‍🏫</span><span><b>AI vocal teacher</b><br><span class="small muted">Your lesson plan · learn Arijit, Bieber &amp; more</span></span></a>
       <a class="card quick" href="#/coach"><span class="q-ico">🎙️</span><span><b>Live coach</b><br><span class="small muted">Free-sing tuner & note matching</span></span></a>
       <a class="card quick" href="#/songs"><span class="q-ico">🎵</span><span><b>Sing a song</b><br><span class="small muted">Hindi, Bollywood or any song</span></span></a>
+      <a class="card quick" href="#/progress"><span class="q-ico">📈</span><span><b>Your progress</b><br><span class="small muted">Week-by-week charts · hear then &amp; now</span></span></a>
     </section>
 
-    <div class="section-title"><h2>Your skills</h2><span class="small muted">Updated after every take</span></div>
+    <div class="section-title"><h2>Your skills</h2><a class="small muted" href="#/progress">Week by week →</a></div>
     <section class="card">
       ${skill('🎯 Pitch', sk.pitch)}
       ${skill('🧘 Steadiness', sk.stability)}
@@ -77,6 +82,20 @@ export function homeView(el) {
       ${skill('⚡ Agility', sk.agility)}
       ${sk.pitch == null ? '<p class="small dim" style="margin:8px 0 0">Complete a lesson to start tracking your skills.</p>' : ''}
     </section>`;
+
+  // Once a month: an old take beside a new one ("hear how far you've come").
+  listTakes()
+    .then((takes) => {
+      const nudge = monthlyNudge(thenAndNow(takes), store.progress.seenAt);
+      const slot = el.querySelector('#then-now');
+      if (!nudge || !slot?.isConnected) return;
+      slot.innerHTML = `
+        <a class="card glow quick" href="#/progress" style="margin-top:14px">
+          <span class="q-ico">⏪</span>
+          <span><b>Hear how far you’ve come</b><br><span class="small muted">${esc(nudge.title)}: your first take, ${Number(nudge.days)} days ago, beside this week’s</span></span>
+        </a>`;
+    })
+    .catch(() => {});
 
   el.querySelector('#warmup').addEventListener('click', () => {
     handoff.practice = {

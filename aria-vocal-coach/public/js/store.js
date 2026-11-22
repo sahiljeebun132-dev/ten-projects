@@ -1,6 +1,8 @@
 // Progress, voice profile and settings — persisted in localStorage (this device only).
+// Recordings live in IndexedDB (takes.js); only their small score log is kept here.
 import { LEVELS, ALL_LESSONS, DEFAULT_RANGE } from './data/curriculum.js';
 import { suggestSa, stageStatus, goldenVoice, today } from './data/riyaaz.js';
+import { LIMITS as PROGRESS_LIMITS } from './progress.js';
 
 const KEY = 'aria.v1';
 
@@ -20,6 +22,8 @@ function defaults() {
     teacher: { takes: [], chat: [], lessons: [] },
     // Singer styles the teacher has learned: id -> { id, singer, songs, profile, trainedAt }
     styles: {},
+    // Every take's numbers (for the weekly charts) and when "then & now" was last shown.
+    progress: { log: [], seenAt: null },
     settings: { input: 'mic', guideVolume: 0.6, backingVolume: 0.8, speak: false, market: 'in', notation: 'sargam', tanpuraVolume: 0.35, teacherVoice: true },
   };
 }
@@ -38,6 +42,7 @@ function load() {
       riyaaz: { ...d.riyaaz, ...data.riyaaz },
       teacher: { ...d.teacher, ...data.teacher },
       styles: { ...data.styles },
+      progress: { ...d.progress, ...data.progress, log: Array.isArray(data.progress?.log) ? data.progress.log : [] },
     };
   } catch {
     return defaults();
@@ -234,6 +239,20 @@ export function recordLesson(lesson) {
   const list = (state.teacher.lessons ||= []);
   list.push(lesson);
   if (list.length > 20) list.splice(0, list.length - 20);
+  save();
+}
+
+/** Log a take's numbers for the weekly charts (see progress.js logEntry). */
+export function recordProgress(entry) {
+  const log = state.progress.log;
+  log.push(entry);
+  if (log.length > PROGRESS_LIMITS.logSize) log.splice(0, log.length - PROGRESS_LIMITS.logSize);
+  save();
+}
+
+/** The monthly "then & now" was shown now. */
+export function markProgressSeen(at = Date.now()) {
+  state.progress.seenAt = at;
   save();
 }
 
