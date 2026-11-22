@@ -1,5 +1,7 @@
-// Voice input: microphone (or a simulated "demo singer") -> analyser -> YIN pitch.
+// Voice input: microphone (or a simulated "demo singer") -> analyser -> YIN pitch, plus the
+// tone colour of each voiced frame (tone.js) from a second, longer analyser window.
 import { createPitchDetector } from './pitch.js';
+import { createToneAnalyzer, TONE_FFT } from './tone.js';
 import { freqToMidi, midiToFreq, median } from './notes.js';
 
 const FFT_SIZE = 2048;
@@ -13,10 +15,16 @@ export class VoiceInput {
     this.analyser.smoothingTimeConstant = 0;
     this.buf = new Float32Array(FFT_SIZE);
     this.detect = createPitchDetector({ sampleRate: ctx.sampleRate, bufferSize: FFT_SIZE });
-    // Keep the analyser pulled by the graph without making it audible.
+    // Tone needs a longer window than pitch (to separate the first harmonics of low voices).
+    this.toneAnalyser = ctx.createAnalyser();
+    this.toneAnalyser.fftSize = TONE_FFT;
+    this.toneAnalyser.smoothingTimeConstant = 0;
+    this.toneBuf = new Float32Array(TONE_FFT);
+    this.toneOf = createToneAnalyzer({ sampleRate: ctx.sampleRate, size: TONE_FFT });
+    // Keep the analysers pulled by the graph without making them audible.
     const sink = ctx.createGain();
     sink.gain.value = 0;
-    this.analyser.connect(sink).connect(ctx.destination);
+    this.analyser.connect(this.toneAnalyser).connect(sink).connect(ctx.destination);
     this.kind = null; // 'mic' | 'demo'
     this.recent = [];
     this.stream = null;
@@ -77,7 +85,12 @@ export class VoiceInput {
     if (this.recent.length > 3) this.recent.shift();
     const voiced = this.recent.filter((m) => m != null);
     const midi = raw != null && voiced.length >= 2 ? median(voiced) : raw != null && this.recent.length < 3 ? raw : null;
-    return { t: this.ctx.currentTime, midi, rms: r.rms, clarity: r.clarity };
+    let tone = null;
+    if (raw != null) {
+      this.toneAnalyser.getFloatTimeDomainData(this.toneBuf);
+      tone = this.toneOf(this.toneBuf, r.freq);
+    }
+    return { t: this.ctx.currentTime, midi, rms: r.rms, clarity: r.clarity, tone };
   }
 }
 
@@ -89,11 +102,32 @@ class DemoSinger {
     this.osc.type = 'sawtooth';
     const formant = ctx.createBiquadFilter();
     formant.type = 'lowpass';
-    formant.frequency.value = 1800;
+    formant.frequency.value = 2600;
     formant.Q.value = 0.8;
+    const ring = ctx.createBiquadFilter(); // a modest singer's formant
+    ring.type = 'peaking';
+    ring.frequency.value = 3000;
+    ring.Q.value = 1.4;
+    ring.gain.value = 6;
     this.env = ctx.createGain();
     this.env.gain.value = 0;
-    this.osc.connect(formant).connect(this.env);
+    this.osc.connect(formant).connect(ring).connect(this.env);
+    // Breath: soft high-passed noise, strongest as a note starts (like a beginner's airy onset).
+    const noise = ctx.createBufferSource();
+    const nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = nb.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    noise.buffer = nb;
+    noise.loop = true;
+    const air = ctx.createBiquadFilter();
+    air.type = 'highpass';
+    air.frequency.value = 1200;
+    this.breath = ctx.createGain();
+    this.breath.gain.value = 0;
+    noise.connect(air).connect(this.breath).connect(this.env);
+    noise.start();
+    this.noise = noise;
+    this.airiness = 0.1;
     this.output = this.env;
     // Let the user hear the demo singer quietly.
     this.monitor = ctx.createGain();
@@ -116,6 +150,7 @@ class DemoSinger {
     if (jump) {
       this.noteStart = this.ctx.currentTime;
       if (midi != null && this.cur == null) this.cur = midi - 0.5; // small scoop in
+      this.airiness = 0.05 + Math.random() * 0.12; // some notes come out airier than others
     }
     this.target = midi;
   }
@@ -133,6 +168,7 @@ class DemoSinger {
     const aim = this.target + this.bias + this.drift;
     this.cur = this.cur == null ? aim : this.cur + (aim - this.cur) * (1 - Math.exp(-dt / 0.07));
     const held = t - this.noteStart;
+    this.breath.gain.setTargetAtTime(this.airiness * (0.5 + 1.5 * Math.exp(-held / 0.35)), t, 0.03);
     const vib = held > 0.55 ? 0.22 * Math.sin(2 * Math.PI * 5.4 * held) * Math.min(1, (held - 0.55) / 0.5) : 0;
     this.osc.frequency.setTargetAtTime(midiToFreq(this.cur + vib), t, 0.012);
   }
@@ -140,6 +176,7 @@ class DemoSinger {
   dispose() {
     try {
       this.osc.stop();
+      this.noise.stop();
     } catch {
       /* already stopped */
     }

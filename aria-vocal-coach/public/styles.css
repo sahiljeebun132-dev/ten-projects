@@ -398,3 +398,11 @@ select option { background: #151524; }
 .viz-table { margin-top: 10px; }
 .viz-table summary { cursor: pointer; }
 .viz-table table { margin-top: 8px; }
+
+/* ---------- tone colour ---------- */
+.tone-meter { display: grid; grid-template-columns: 58px 1fr 52px 34px; gap: 10px; align-items: center; margin-top: 12px; }
+.tone-meter > span:nth-child(3) { text-align: left; }
+.tone-track { position: relative; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); }
+.tone-track i { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--brand); border: 2px solid var(--bg); box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.5); }
+.tone-usual { position: absolute; top: -4px; width: 2px; height: 16px; margin-left: -1px; background: var(--muted); border-radius: 1px; }
+.tone-val { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }

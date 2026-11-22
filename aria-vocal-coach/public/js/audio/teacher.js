@@ -2,6 +2,8 @@
 // real teacher does, assign the right exercise, and talk to the student after each take.
 // Pure — the app stores the condensed takes; tests drive it directly.
 
+import { trustTone } from './tone.js';
+
 const avg = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0);
 
 /** What the teacher remembers about one take. */
@@ -25,6 +27,10 @@ export function condense(result, meta = {}) {
     // The longest note the exercise asked for — breath is only judged where it allowed a long hold.
     maxNote: Math.round(Math.max(0, ...(result.perNote || []).map((n) => n.dur)) * 10) / 10,
     style: meta.styleMatch ?? null,
+    // Tone colour, only from a fair reading (null otherwise).
+    clarity: trustTone(result.tone) ? result.tone.clarity : null,
+    ring: trustTone(result.tone) ? result.tone.ring : null,
+    pressed: trustTone(result.tone) ? result.tone.pressed : null,
   };
 }
 
@@ -57,6 +63,14 @@ const ASSIGN = {
   agility: [
     { kind: 'riyaaz', id: 'taan', label: 'Taan — fast runs' },
     { kind: 'lesson', id: 'agility', label: 'Agility runs' },
+  ],
+  breathy: [
+    { kind: 'riyaaz', id: 'omkar', label: 'Omkar — hum the M until your lips buzz' },
+    { kind: 'lesson', id: 'sustain', label: 'Breath & sustain — a clean, steady tone' },
+  ],
+  pressed: [
+    { kind: 'lesson', id: 'sirens', label: 'Sirens — glide without squeezing' },
+    { kind: 'riyaaz', id: 'omkar', label: 'Omkar — a relaxed, easy tone' },
   ],
 };
 
@@ -97,7 +111,14 @@ export function diagnose(takes) {
   const ag = avg(agile.map((x) => x.hitRate));
   if (agile.length && ag < 60) add('agility', (60 - ag) / 60, 'Fast passages blur', `In quick runs you hit ${Math.round(ag)}% of the notes. Keep the voice lighter and slower until every note is clear.`);
 
+  const toned = t.filter((x) => Number.isFinite(x.clarity));
+  const clar = avg(toned.map((x) => x.clarity));
+  const pressedShare = toned.length ? toned.filter((x) => x.pressed).length / toned.length : 0;
+  if (toned.length >= 3 && pressedShare >= 0.5) add('pressed', 0.4 + pressedShare / 2, 'Pressed tone', `In ${Math.round(pressedShare * 100)}% of your recent takes your tone sounded squeezed: the first harmonic is weak against the second, a sign of a tight throat. Sing with less effort and let more air flow.`);
+  else if (toned.length >= 3 && clar < 45) add('breathy', (45 - clar) / 45, 'Breathy tone', `Your tone clarity averages ${Math.round(clar)}/100 over ${toned.length} takes: more air than sound gets into your voice. Buzzy humming teaches the folds to close cleanly.`);
+
   const strengths = [];
+  if (toned.length >= 3 && clar >= 75 && pressedShare < 0.5) strengths.push(`Your tone is clear (${Math.round(clar)}/100) — very little air in the sound.`);
   if (acc >= 80) strengths.push(`Your sur is strong — ${Math.round(acc)}% of your singing is in tune.`);
   if (steady.length >= 2 && stab >= 80) strengths.push(`Your held notes are steady (${Math.round(stab)}/100).`);
   if (Math.abs(cents) <= 6 && acc >= 60) strengths.push('You sit right in the centre of the notes — not flat, not sharp.');
@@ -190,6 +211,10 @@ export function teacherNote(result, prevTakes = [], meta = {}) {
     fix = 'You came in late on several notes. Take your breath before the note arrives, not when it starts.';
   } else if (result.accuracy < 60) {
     fix = 'Several notes missed. Slow down: listen to each target, hum it, then sing it.';
+  } else if (trustTone(result.tone) && result.tone.pressed) {
+    fix = 'Your tone sounded squeezed. Drop the shoulders, loosen the jaw and let more air flow.';
+  } else if (trustTone(result.tone) && result.tone.breathy) {
+    fix = 'Your tone was breathy. Hum “mm” until your lips buzz, then open to “ah” and keep the buzz.';
   }
   if (fix) lines.push(fix);
 

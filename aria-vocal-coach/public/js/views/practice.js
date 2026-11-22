@@ -15,6 +15,7 @@ import { goPractice, riyaazHandoff, nextRiyaaz, styleDrillHandoff } from '../run
 import { summarizeTake } from '../teacherTalk.js';
 import { takeRecord, logEntry, worthKeeping, pickThen, DAY } from '../progress.js';
 import { saveTake, takesFor } from '../takes.js';
+import { usualTone } from '../audio/tone.js';
 
 /**
  * @param {HTMLElement} el
@@ -277,6 +278,7 @@ export function practiceView(el, _params = [], opts = {}) {
 
     const takeId = p.riyaaz?.id || p.lessonId || p.styleDrill || p.songKey || p.title;
     const kind = p.riyaaz ? 'riyaaz' : p.lessonId ? 'lesson' : p.focus === 'song' ? 'song' : p.styleDrill ? 'style' : 'exercise';
+    const usual = usualTone(store.progress.log); // before this take joins the log
     const kept = worthKeeping(result) ? keepTake({ takeId, kind, result, finished, seconds }) : Promise.resolve(null);
     if (embedded) {
       recordTake(condense(result, { id: takeId, kind: p.riyaaz ? 'riyaaz' : p.lessonId ? 'lesson' : p.styleDrill ? 'style' : 'exercise', title: p.title, styleMatch: styleCmp?.match }));
@@ -328,6 +330,7 @@ export function practiceView(el, _params = [], opts = {}) {
         </div>
       </div>
       ${riy ? riyaazBlock(riy) : ''}
+      ${result.tone ? toneBlock(result.tone, usual) : ''}
       ${styleCmp ? styleBlock(styleCmp, styleRec) : ''}
       <div class="card" style="margin-top:14px">
         <h3>🧑‍🏫 Detailed feedback</h3>
@@ -434,6 +437,7 @@ export function practiceView(el, _params = [], opts = {}) {
               <div class="metric"><b>${result.notesHit}/${result.notesTotal}</b><span>Notes hit</span></div>
               <div class="metric"><b>${result.stability}</b><span>Steadiness</span></div>
               <div class="metric"><b>${result.longestHold}s</b><span>Longest steady note</span></div>
+              ${result.tone ? `<div class="metric"><b>${Number(result.tone.clarity)}</b><span>Tone clarity${result.tone.reliable ? '' : ' (rough)'}</span></div><div class="metric"><b>${Number(result.tone.ring)}</b><span>Ring</span></div>` : ''}
               ${styleCmp ? `<div class="metric"><b>${styleCmp.match}%</b><span>${esc(styleRec.singer)} style</span></div>` : ''}
             </div>
           </div>
@@ -471,6 +475,40 @@ function riyaazBlock(riy) {
         ${riy.after.nextTier ? `<span class="small muted">${riy.after.nextTier.min - riy.after.score} to ${esc(riy.after.nextTier.name)}</span>` : ''}
       </div>
       <div class="bar gold" style="margin-top:8px"><span style="width:${riy.after.score}%"></span></div>
+    </div>`;
+}
+
+/** Tone colour: two meters (breathy↔clear, dark↔bright) with your usual marked, and honest caveats. */
+function toneBlock(t, usual) {
+  const meter = (label, value, lo, hi, mark) => `
+    <div class="tone-meter">
+      <span class="small muted">${lo}</span>
+      <div class="tone-track" role="meter" aria-label="${label}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Number(value)}">
+        ${mark != null ? `<b class="tone-usual" style="left:${Number(mark)}%" title="Your usual"></b>` : ''}
+        <i style="left:${Number(value)}%"></i>
+      </div>
+      <span class="small muted">${hi}</span>
+      <span class="tone-val">${Number(value)}</span>
+    </div>`;
+  const diff = (now, was, what) => {
+    const d = Math.round(now - was);
+    return Math.abs(d) < 3 ? `${what} about the same` : `${what} ${d > 0 ? 'up' : 'down'} ${Math.abs(d)}`;
+  };
+  const vsUsual = usual && t.reliable && !t.backing ? `<p class="small muted" style="margin:8px 0 0">Against your usual (your last ${Number(usual.takes)} fair readings): ${esc(diff(t.clarity, usual.clarity, 'clarity'))}, ${esc(diff(t.ring, usual.ring, 'ring'))}.</p>` : '';
+  const caveat = t.backing
+    ? '<p class="small dim" style="margin:8px 0 0">The song was playing: if it came through speakers, the mic heard it too. Wear headphones for a true tone reading.</p>'
+    : !t.reliable
+      ? '<p class="small dim" style="margin:8px 0 0">The quiet between notes wasn’t quiet (room noise, or the guide leaking from speakers into the mic), so this is a rough reading. Headphones help.</p>'
+      : '';
+  const extra = [t.pressed && 'Sounds pressed (squeezed)', t.fades && 'Airier at the end of long notes'].filter(Boolean);
+  return `
+    <div class="card" style="margin-top:14px">
+      <div class="row between"><h3 style="margin:0">🎨 Tone colour</h3><span class="pill ${t.pressed || t.breathy ? 'warn' : 'brand'}">${esc(t.headline)}</span></div>
+      ${meter('Tone clarity', t.clarity, 'Breathy', 'Clear', usual && t.reliable && !t.backing ? usual.clarity : null)}
+      ${meter('Ring', t.ring, 'Dark', 'Bright', usual && t.reliable && !t.backing ? usual.ring : null)}
+      ${extra.length ? `<div class="row" style="margin-top:8px">${extra.map((x) => `<span class="pill warn">${esc(x)}</span>`).join('')}</div>` : ''}
+      ${vsUsual}${caveat}
+      <p class="small dim" style="margin:8px 0 0">Clarity is how much of your sound is clean tone rather than air; ring is the bright 2–4 kHz energy that helps a voice carry. Microphones and rooms colour both, so watch your own trend rather than the exact number.</p>
     </div>`;
 }
 

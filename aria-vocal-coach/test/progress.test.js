@@ -89,7 +89,7 @@ test('a take record keeps the numbers, the targets and the pitch line, and logs 
   assert.equal(rec.audio, null);
   assert.equal(rec.starred, false);
 
-  assert.deepEqual(logEntry({ key: 'omkar', kind: 'riyaaz', at: NOW, result: result() }), { at: NOW, key: 'omkar', kind: 'riyaaz', score: 70, acc: 64, stab: 58, tim: 72 });
+  assert.deepEqual(logEntry({ key: 'omkar', kind: 'riyaaz', at: NOW, result: result() }), { at: NOW, key: 'omkar', kind: 'riyaaz', score: 70, acc: 64, stab: 58, tim: 72, clar: null, ring: null });
   const thin = logEntry({ key: 'x', kind: 'exercise', at: NOW, result: result({ coverage: 18, notesHit: 0 }) });
   assert.equal(thin.acc, null);
   assert.equal(thin.stab, null);
