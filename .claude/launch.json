@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backprop-pirates",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "Gemma Hackathon Prep 2026/BackpropPirates", "run", "dev", "--", "--port", "5180", "--strictPort"],
+      "port": 5180
+    },
+    {
+      "name": "aria-vocal-coach",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["aria-vocal-coach/server.js"],
+      "port": 5190
+    }
+  ]
+}
