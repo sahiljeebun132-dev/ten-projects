@@ -2,6 +2,8 @@
 // the library, week-by-week trends, and which old take to set beside a new one. No DOM or storage
 // here, so it runs (and is tested) in Node; takes.js stores the records in the browser.
 
+import { trustTone } from './audio/tone.js';
+
 export const DAY = 86_400_000;
 export const LIMITS = {
   maxTakes: 400,
@@ -72,9 +74,17 @@ export function takeStats(result) {
     notesTotal: result.notesTotal,
     scoops: result.scoops,
     vibratoNotes: result.vibratoNotes,
+    tone: toneStats(result.tone),
     // [midi, hit, average cents or null] per note, for the note-by-note list
     notes: (result.perNote || []).slice(0, LIMITS.notes).map((n) => [n.midi, n.hit ? 1 : 0, n.voicedFrac > 0.3 ? Math.round(n.meanErr) : null]),
   };
+}
+
+/** The tone colour reading worth keeping (see audio/tone.js), or null. */
+function toneStats(t) {
+  if (!t) return null;
+  const { clarity, ring, hnr, h1h2, spr, sound, colour, pressed, breathy, fades, reliable, backing } = t;
+  return { clarity, ring, hnr, h1h2, spr, sound, colour, pressed, breathy, fades, reliable, backing };
 }
 
 /** Whether a take is worth keeping and charting (the student actually sang). */
@@ -114,6 +124,9 @@ export function logEntry({ key, kind, at, result }) {
     acc: sang ? result.accuracy : null,
     stab: sang && result.focus !== 'vibrato' && result.stability > 0 ? result.stability : null,
     tim: result.notesHit > 0 ? result.timing : null,
+    // Tone only from a fair reading, so the chart isn't moved by a noisy room or the song in the mic.
+    clar: trustTone(result.tone) ? result.tone.clarity : null,
+    ring: trustTone(result.tone) ? result.tone.ring : null,
   };
 }
 
@@ -257,6 +270,8 @@ export function weeklyTrend(log, { weeks = 12, now = Date.now() } = {}) {
       inTune: mean(es.map((e) => e.acc)),
       steadiness: mean(es.map((e) => e.stab)),
       timing: mean(es.map((e) => e.tim)),
+      clarity: mean(es.map((e) => e.clar)),
+      ring: mean(es.map((e) => e.ring)),
     });
   }
   return out;
@@ -270,8 +285,33 @@ export function progressSummary(log, now = Date.now()) {
   return {
     weeksPractisedOfLast8: active.length,
     weekly: trend
-      .map((w, i) => ({ weeksAgo: trend.length - 1 - i, takes: w.takes, avgScore: w.score, inTunePct: w.inTune, steadiness: w.steadiness }))
+      .map((w, i) => ({
+        weeksAgo: trend.length - 1 - i,
+        takes: w.takes,
+        avgScore: w.score,
+        inTunePct: w.inTune,
+        steadiness: w.steadiness,
+        ...(w.clarity != null ? { toneClarity: w.clarity, toneRing: w.ring } : {}),
+      }))
       .filter((w) => w.takes),
+  };
+}
+
+/** A tone reading as the teacher reads it (also used for live-lesson takes and chat reviews). */
+export function toneForTeacher(t) {
+  return {
+    clarity: t.clarity,
+    ring: t.ring,
+    sound: t.sound,
+    colour: t.colour,
+    hnrDb: t.hnr,
+    h1MinusH2Db: t.h1h2,
+    singingPowerRatioDb: t.spr,
+    ...(t.pressed ? { pressed: true } : {}),
+    ...(t.breathy ? { breathy: true } : {}),
+    ...(t.fades ? { airierAtTheEndOfLongNotes: true } : {}),
+    ...(!t.reliable ? { roughReading: 'the room was noisy or other sound reached the mic' } : {}),
+    ...(t.backing ? { songWasPlaying: true } : {}),
   };
 }
 
@@ -290,6 +330,7 @@ export function takeSummary(rec, now = Date.now(), label = (m) => String(m)) {
     scoops: s.scoops,
     vibratoNotes: s.vibratoNotes,
     ...(rec.seconds != null ? { durationSec: Math.round(rec.seconds) } : {}),
+    ...(s.tone ? { tone: toneForTeacher(s.tone) } : {}),
     noteByNote: (s.notes || []).slice(0, 40).map(([m, hit, cents]) => ({ note: label(m), hit: Boolean(hit), avgCents: cents })),
   };
 }

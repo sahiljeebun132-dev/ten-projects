@@ -1,6 +1,7 @@
 // The coach: real-time cues while you sing, and teaching feedback afterwards.
 import { median } from './notes.js';
 import { pitchError, measureVibrato, isVibrato } from './scoring.js';
+import { trustTone } from './tone.js';
 
 const MIN_HOLD = 0.4; // seconds a cue stays up before it may change (prevents flicker)
 
@@ -152,6 +153,22 @@ export function buildInsights(r) {
     tips.push('You come in a little late. Breathe in on the beat before each phrase so you’re ready to sing on time.');
   } else if (r.timing >= 85 && r.notesHit >= 3) {
     wins.push('Great timing — you land on the beat.');
+  }
+
+  // Tone colour — only from a fair reading (a quiet room, no song in the mic).
+  const tone = r.tone;
+  if (trustTone(tone) && r.coverage >= 40) {
+    if (tone.pressed) {
+      tips.push('Your tone sounds pressed, as if squeezed in the throat. Drop your shoulders, loosen the jaw and let a little more air through; a relaxed sigh sliding down from a high note releases the squeeze.');
+    } else if (tone.breathy) {
+      tips.push('Your tone is breathy: more air than sound. Hum on “mm” or “ng” until you feel a buzz in your lips and nose, then open to “ah” and keep that buzz.');
+    } else if (tone.fades) {
+      tips.push('Your tone turns airy towards the end of long notes: the breath is running out. Breathe low before the note and spend the air slowly, or end the note a little sooner.');
+    } else if (tone.ring < 30) {
+      tips.push('Your sound is quite dark and covered. Lift the cheeks a little, as if about to smile, and feel the tone buzz behind your nose; it brightens without pushing.');
+    }
+    if (tone.clarity >= 75 && tone.ring >= 55 && !tone.pressed) wins.push('Clear, ringing tone: your voice carries.');
+    else if (tone.clarity >= 75 && !tone.pressed) wins.push('Clean, clear tone: very little air in the sound.');
   }
 
   // Register comparison: are high or low notes the weak spot?

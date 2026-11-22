@@ -15,6 +15,11 @@ const SERIES = [
   { key: 'steadiness', label: 'Steadiness', unit: '', color: '#d95926' },
   { key: 'timing', label: 'Timing', unit: '', color: '#199e70' },
 ];
+// Tone takes the next two palette slots, so no colour means two things on one page.
+const TONE_SERIES = [
+  { key: 'clarity', label: 'Clarity', unit: '', color: '#c98500' },
+  { key: 'ring', label: 'Ring', unit: '', color: '#d55181' },
+];
 const MAX_PAIRS = 8;
 const MAX_PICTURE = 190_000; // base64 characters the server accepts per picture, with room to spare
 
@@ -23,6 +28,7 @@ const weekStart = (w) => {
   const [y, m, d] = w.split('-').map(Number);
   return new Date(y, m - 1, d).getTime();
 };
+const fairTone = (rec) => Boolean(rec.stats?.tone?.reliable && !rec.stats.tone.backing);
 const mb = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
 const signed = (n, unit = '') => `${n > 0 ? '+' : ''}${n}${unit}`;
 
@@ -41,6 +47,8 @@ export function progressView(el) {
     <div id="highlight"></div>
     <div class="section-title"><h2>Week by week</h2><span class="small muted">Last 12 weeks, every take</span></div>
     <section class="card" id="trend"></section>
+    <div class="section-title"><h2>Tone, week by week</h2><span class="small muted">Clarity (clean tone, not air) and ring (2–4 kHz brightness)</span></div>
+    <section class="card" id="tone-trend"></section>
     <div class="section-title"><h2>Then &amp; now</h2><span class="small muted">Where you started, beside your latest take</span></div>
     <section id="pairs" class="stack"><p class="muted">Loading your recordings…</p></section>
     <div class="section-title"><h2>Your recordings</h2><span class="small muted" id="usage"></span></div>
@@ -50,6 +58,12 @@ export function progressView(el) {
   const trend = weeklyTrend(log);
   renderStats(el.querySelector('#stats'), log, trend, null);
   cleanups.push(renderTrend(el.querySelector('#trend'), trend));
+  cleanups.push(
+    renderTrend(el.querySelector('#tone-trend'), trend, TONE_SERIES, {
+      describe: 'Weekly tone readings for the last 12 weeks: clarity and ring.',
+      empty: 'Tone readings start with your next microphone takes (in a quiet room, ideally with headphones).',
+    }),
+  );
 
   const teacherReady = teacherStatus().then((s) => Boolean(s.available));
   let libById = new Map(); // the takes the library list shows, by id
@@ -131,6 +145,7 @@ export function progressView(el) {
             <div class="small muted">${which} · ${esc(fmtDate(rec.at))}</div>
             <div class="pair-score"><b>${Number(rec.stats.score)}</b><span class="small muted">score</span></div>
             <div class="small muted">In tune ${Number(rec.stats.accuracy)}% · Steadiness ${Number(rec.stats.stability)} · Timing ${Number(rec.stats.timing)}</div>
+            ${rec.stats.tone ? `<div class="small muted">Tone: ${esc(rec.stats.tone.sound)}, ${esc(rec.stats.tone.colour)} · clarity ${Number(rec.stats.tone.clarity)} · ring ${Number(rec.stats.tone.ring)}${rec.stats.tone.reliable && !rec.stats.tone.backing ? '' : ' (rough)'}</div>` : ''}
             ${audioFor(rec, `${pair.title}, ${which.toLowerCase()}`)}
             <img class="pitch-pic" data-pic="${i}-${which === 'Then' ? 0 : 1}" alt="Pitch line of the ${which.toLowerCase()} take over the target notes">
           </div>`;
@@ -138,6 +153,7 @@ export function progressView(el) {
           ['Score', now.stats.score - then.stats.score, ''],
           ['In tune', now.stats.accuracy - then.stats.accuracy, ' pts'],
           ['Steadiness', now.stats.stability - then.stats.stability, ''],
+          ...(fairTone(then) && fairTone(now) ? [['Clarity', now.stats.tone.clarity - then.stats.tone.clarity, '']] : []),
         ]
           .map(([name, d, unit]) => `<span class="pill ${d > 0 ? 'good' : d < 0 ? 'warn' : ''}">${name} ${d > 0 ? '▲' : d < 0 ? '▼' : '●'} ${esc(signed(Number(d), unit))}</span>`)
           .join('');
@@ -333,18 +349,18 @@ function renderStats(box, log, trend, lib) {
 }
 
 /** The weekly line chart: one 0–100 axis, three series, a crosshair tooltip and a table view. */
-function renderTrend(box, trend) {
-  if (!trend.some((w) => w.takes)) {
-    box.innerHTML = '<p class="muted" style="margin:0">Sing a few takes and your week-by-week chart starts here.</p>';
+function renderTrend(box, trend, series = SERIES, { describe = 'Weekly averages for the last 12 weeks: in tune, steadiness and timing.', empty = 'Sing a few takes and your week-by-week chart starts here.' } = {}) {
+  if (!trend.some((w) => series.some((s) => w[s.key] != null))) {
+    box.innerHTML = `<p class="muted" style="margin:0">${esc(empty)}</p>`;
     return null;
   }
   box.innerHTML = `
-    <div class="viz-legend">${SERIES.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}</div>
+    <div class="viz-legend">${series.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}</div>
     <div class="viz-wrap"><div class="viz-plot"></div><div class="viz-tip hidden" role="status"></div></div>
     <details class="viz-table"><summary class="small muted">Show as a table</summary>
-      <table class="cmp"><thead><tr><th>Week of</th><th>Takes</th>${SERIES.map((s) => `<th>${esc(s.label)}</th>`).join('')}</tr></thead>
+      <table class="cmp"><thead><tr><th>Week of</th><th>Takes</th>${series.map((s) => `<th>${esc(s.label)}</th>`).join('')}</tr></thead>
       <tbody>${trend
-        .map((w) => `<tr><td>${esc(fmtDate(weekStart(w.week)))}</td><td>${w.takes}</td>${SERIES.map((s) => `<td>${w[s.key] ?? '–'}${w[s.key] != null ? s.unit : ''}</td>`).join('')}</tr>`)
+        .map((w) => `<tr><td>${esc(fmtDate(weekStart(w.week)))}</td><td>${w.takes}</td>${series.map((s) => `<td>${w[s.key] ?? '–'}${w[s.key] != null ? s.unit : ''}</td>`).join('')}</tr>`)
         .join('')}</tbody></table>
     </details>`;
   const plot = box.querySelector('.viz-plot');
@@ -372,7 +388,7 @@ function renderTrend(box, trend) {
       svg += `<text x="${x(i)}" y="${H - 8}" class="viz-axis" text-anchor="middle">${esc(fmtDate(weekStart(w.week)))}</text>`;
     });
     const ends = [];
-    for (const s of SERIES) {
+    for (const s of series) {
       // Lines break across weeks with no takes; every week with data gets a marker.
       let d = '';
       let pen = false;
@@ -397,7 +413,7 @@ function renderTrend(box, trend) {
     const apart = !narrow && ends.every((e, i) => i === 0 || e.yy - ends[i - 1].yy >= 15);
     if (apart) for (const e of ends) svg += `<text x="${e.xx + 9}" y="${e.yy}" class="viz-label" dominant-baseline="middle">${esc(e.s.label)} ${e.v}</text>`;
     svg += `<line class="viz-cross hidden" y1="${pad.t}" y2="${H - pad.b}"/>`;
-    plot.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" tabindex="0" role="img" aria-label="Weekly averages for the last 12 weeks: in tune, steadiness and timing. Use the arrow keys to read each week.">${svg}<rect x="${pad.l - 10}" y="0" width="${pw + 20}" height="${H}" fill="transparent" class="viz-hit"/></svg>`;
+    plot.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" tabindex="0" role="img" aria-label="${esc(describe)} Use the arrow keys to read each week.">${svg}<rect x="${pad.l - 10}" y="0" width="${pw + 20}" height="${H}" fill="transparent" class="viz-hit"/></svg>`;
     geo = { x, W, pad };
     const el = plot.querySelector('svg');
     el.addEventListener('pointermove', (e) => {
@@ -431,7 +447,7 @@ function renderTrend(box, trend) {
     head.className = 'small muted';
     head.textContent = `Week of ${fmtDate(weekStart(w.week))} · ${w.takes} take${w.takes === 1 ? '' : 's'}`;
     tip.appendChild(head);
-    for (const s of SERIES) {
+    for (const s of series) {
       const row = document.createElement('div');
       row.className = 'viz-tip-row';
       const key = document.createElement('i');

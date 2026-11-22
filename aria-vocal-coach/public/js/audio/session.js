@@ -121,7 +121,7 @@ export class PracticeSession {
       this.noteLive[active.i].frames++;
     }
     if (songT > -0.3) {
-      this.frames.push({ t, midi: f.midi, rms: f.rms });
+      this.frames.push({ t, midi: f.midi, rms: f.rms, ...(f.tone ? { tone: f.tone } : {}) });
       this.trail.push({ t, m: plotted, col });
       if (this.trail.length > 600) this.trail.splice(0, this.trail.length - 600);
     }
@@ -170,7 +170,7 @@ export class PracticeSession {
 
   finish() {
     this.halt();
-    const result = scoreTake(this.frames, this.targets, { tolerance: this.tolerance, focus: this.focus });
+    const result = scoreTake(this.frames, this.targets, { tolerance: this.tolerance, focus: this.focus, backing: Boolean(this.backing) });
     this.onEnd?.(result);
   }
 }

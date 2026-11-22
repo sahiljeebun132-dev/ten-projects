@@ -8,7 +8,7 @@ Aria listens to your voice in real time and coaches you from your very first not
 cd aria-vocal-coach
 npm install        # one dependency: the official Anthropic SDK (for the talking teacher)
 npm start          # → http://localhost:5190
-npm test           # 87 tests: pitch, melody, scoring, coach, riyaaz, style learning, teacher, chat, live lessons, progress, server security
+npm test           # 98 tests: pitch, tone, melody, scoring, coach, riyaaz, style learning, teacher, chat, live lessons, progress, server security
 ```
 
 Node 20+. Open the URL in Chrome/Edge and allow the microphone. **Headphones give the most accurate coaching** (the mic won't hear the guide tones or tanpura). No mic? Settings → **Demo voice** runs a simulated singer so you can try everything.
@@ -28,6 +28,7 @@ The key stays in the server process — the browser never sees it. Each question
 | Feature | How |
 | --- | --- |
 | **Find your voice** | 1-minute range test → your lowest/highest notes and voice type (Bass … Soprano). Every exercise and song is then pitched for *your* range, and your Sa is suggested from it. |
+| **🎨 Tone colour** | Beyond *which* note: how your voice *sounds*. Every take gets a **clarity** reading (clean tone vs air, from the harmonics-to-noise ratio) and a **ring** reading (the 2–4 kHz brightness that helps a voice carry), and is flagged when it sounds **pressed** (squeezed) or turns airy at the end of long notes. Results show both meters with *your usual* marked, the tips and the teacher coach from them (buzzy humming for a breathy tone, sigh-glides for a pressed one), the teacher spots tone habits across takes, and Your progress charts tone week by week and in then & now. Readings taken in a noisy room or while the song played through speakers are marked rough and left out of the charts. |
 | **Live coaching** | Real-time pitch detection (YIN) shows your voice as a line over the target notes, plus cues: *Go higher ⬆ · Go lower ⬇ · Perfect — hold it · Steady it · A little louder · Beautiful vibrato*. Optional spoken cues. |
 | **🎓 Live lessons** | Your teacher (Claude) leads a 10, 15 or 20-minute lesson. It picks each exercise and puts it on your screen with one thing to focus on, then listens to every take: it reads the score and a note-by-note list, and looks at a picture of your pitch line over the target notes. Then it says what went well and what to change, and decides what's next: repeat, step back or move on. It wraps up with a recap and homework, and remembers recent lessons next time. Leave mid-lesson and it waits for you to come back. Needs the range test first, so every exercise fits your voice. |
 | **💬 Talking teacher** | Chat with your teacher (Claude) by typing or speaking; replies stream in and are read aloud. It sees your practice data — range, Sa, riyaaz stage, golden-voice meter, recent takes, the app's diagnosis and learned singer styles — and answers like a guru: explains why, plans your week, and drops exercise buttons (riyaaz, lessons, style drills) straight into the reply. After any take, **Ask the teacher about this take**. |
@@ -43,6 +44,7 @@ The key stays in the server process — the browser never sees it. Each question
 ## How the audio works
 
 - `public/js/audio/pitch.js` — YIN fundamental-frequency detector (±5¢ on test tones).
+- `public/js/audio/tone.js` — tone colour per voiced frame from a second, 4096-sample analyser window: HNR from the normalised autocorrelation over the last three periods (searching ±3% of the pitch, so vibrato doesn't read as breathiness), H1–H2 and the singing power ratio from the spectrum. A take's tone is the median over its sung frames (onsets skipped), with a room check from the quiet between notes. It's reported beside the score, never in it.
 - `public/js/audio/melody.js` — melody extraction from mixed audio: centre-channel weighting, harmonic-summation salience, Viterbi pitch tracking, note segmentation. Runs in a Web Worker.
 - `public/js/audio/style.js` — vocal style analysis from any pitch track (held notes, vibrato, ornament turns, slides, scoops, phrasing), profile aggregation, comparison and style drills.
 - `public/js/audio/teacher.js` — the teacher's reasoning: condensed take memory, diagnosis across takes, lesson plans, post-take feedback.
@@ -55,6 +57,7 @@ The key stays in the server process — the browser never sees it. Each question
 ## Honest limits
 
 - **Two kinds of teacher.** The lesson plan, diagnosis, style learning and post-take feedback are on-device analysis — rules a voice teacher would use, no AI service involved. The **talking teacher** and **live lessons** are Claude: the server sends your question, the recent conversation and a compact summary of your practice data (numbers like scores and ranges — never audio) to Anthropic's API, in a live lesson each take's numbers plus a picture of your pitch line, and for **What changed?** two takes' numbers and pictures. Your recordings never leave the browser. It can't hear you; it reasons from those measurements and the picture, and its answers are AI-generated.
+- **Tone readings depend on your microphone and room.** Built-in laptop mics, distance and echo all colour clarity and ring, so Aria compares each reading with your own usual rather than an absolute standard, and treats readings from a noisy room or with the song playing through speakers as rough. Headphones and a quiet room give the truest reading.
 - **It teaches technique, it doesn't clone voices.** Style profiles describe how someone sings; Aria never imitates or synthesises a real artist's voice.
 - **Style from previews is approximate.** Profiles come from the melody extracted from 30-second mixed previews (or your files). Clear lead vocals work best; dense mixes add noise. Breath per phrase can't be seen inside a full mix (the backing hides the breaths), so it's left out rather than guessed — a cappella files give the fullest profile.
 - **Recordings live in this browser.** Clearing site data, a private window or the browser freeing space can remove them; the weekly chart's numbers are kept separately and survive deleting recordings.

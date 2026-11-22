@@ -1,9 +1,10 @@
 // Scores a sung take against target notes. Pure — shared by the app and tests.
 //
-// frames:  [{ t, midi|null, rms }]   (t in seconds on the exercise clock, sorted)
+// frames:  [{ t, midi|null, rms, tone? }]   (t in seconds on the exercise clock, sorted)
 // targets: [{ midi, start, dur, glideTo?, role: 'sing'|'listen' }]
 
 import { foldToOctave, median, clamp } from './notes.js';
+import { summarizeTone } from './tone.js';
 
 export function targetMidiAt(target, t) {
   if (target.glideTo == null) return target.midi;
@@ -57,7 +58,7 @@ export function starsFor(score) {
   return score >= 90 ? 3 : score >= 75 ? 2 : score >= 60 ? 1 : 0;
 }
 
-export function scoreTake(frames, targets, { tolerance = 50, attack = 0.12, release = 0.04, focus = 'pitch' } = {}) {
+export function scoreTake(frames, targets, { tolerance = 50, attack = 0.12, release = 0.04, focus = 'pitch', backing = false } = {}) {
   const sing = targets.map((t, i) => ({ ...t, index: i })).filter((t) => t.role !== 'listen');
   const perNote = [];
   let totalFrames = 0;
@@ -183,6 +184,8 @@ export function scoreTake(frames, targets, { tolerance = 50, attack = 0.12, rele
     longestHold: Math.round(Math.max(0, ...perNote.map((n) => n.hold)) * 10) / 10,
     octaveMode,
     perNote,
+    // Tone colour is reported beside the score, never in it: microphones and rooms colour it.
+    tone: summarizeTone(frames, targets, { backing }),
   };
 }
 

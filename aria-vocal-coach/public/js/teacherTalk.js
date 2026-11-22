@@ -6,7 +6,7 @@ import { EXERCISES, stageStatus, goldenVoice, suggestSa } from './data/riyaaz.js
 import { ALL_LESSONS } from './data/curriculum.js';
 import { diagnose } from './audio/teacher.js';
 import { signature } from './audio/style.js';
-import { progressSummary } from './progress.js';
+import { progressSummary, toneForTeacher } from './progress.js';
 
 export const DRILL_LABELS = {
   murki: '🌀 Murki drill',
@@ -53,6 +53,7 @@ export function buildTeacherContext(state, { lessonsPassed = null, nextLesson = 
       longestSteadyNoteSec: t.hold,
       scoops: t.scoops,
       notes: t.notes,
+      ...(t.clarity != null ? { toneClarity: t.clarity, toneRing: t.ring, ...(t.pressed ? { pressedTone: true } : {}) } : {}),
       ...(t.style != null ? { styleMatchPct: t.style } : {}),
     })),
     appDiagnosis: d.enough ? { issues: d.issues.map((i) => i.title), strengths: d.strengths } : 'not enough takes yet',
@@ -122,6 +123,7 @@ export function summarizeTake(p, result, { styleCmp = null, insights = [] } = {}
     scoops: result.scoops,
     vibratoNotes: result.vibratoNotes,
     missedNotes: result.perNote.filter((n) => !n.hit).length,
+    ...(result.tone ? { tone: toneForTeacher(result.tone) } : {}),
     appTips: insights.slice(0, 4).map((i) => i.text),
     ...(styleCmp ? { styleMatch: { pct: styleCmp.match, tips: styleCmp.tips.map((t) => t.text) } } : {}),
   };
