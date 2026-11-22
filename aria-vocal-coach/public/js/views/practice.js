@@ -12,6 +12,7 @@ import { state as store, setSetting, recordAttempt, recordRiyaaz, recordTake, st
 import { ALL_LESSONS } from '../data/curriculum.js';
 import { stageOf } from '../data/riyaaz.js';
 import { goPractice, riyaazHandoff, nextRiyaaz, styleDrillHandoff } from '../runners.js';
+import { summarizeTake } from '../teacherTalk.js';
 
 export function practiceView(el) {
   const p = handoff.practice;
@@ -317,6 +318,7 @@ export function practiceView(el) {
       </div>
       <div class="controls">
         <button class="btn ghost" id="again">↻ Try again</button>
+        <button class="btn cyan" id="ask-teacher">💬 Ask the teacher about this take</button>
         ${nextRx ? `<button class="btn" id="next-rx">Next riyaaz: ${esc(nextRx.title)} →</button>` : ''}
         ${p.riyaaz && !nextRx ? '<a class="btn" href="#/riyaaz">✅ Today’s riyaaz done</a>' : ''}
         ${passed && next ? `<a class="btn" href="#/lesson/${esc(next.id)}">Next: ${esc(next.title)} →</a>` : ''}
@@ -326,6 +328,10 @@ export function practiceView(el) {
       box.innerHTML = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
       ui.start.click();
+    });
+    box.querySelector('#ask-teacher').addEventListener('click', () => {
+      handoff.teacherFocus = summarizeTake(p, result, { styleCmp, insights });
+      location.hash = '#/teacher/ask';
     });
     box.querySelector('#next-rx')?.addEventListener('click', () => {
       const h = riyaazHandoff(nextRx.id);

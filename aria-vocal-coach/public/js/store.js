@@ -16,11 +16,11 @@ function defaults() {
     practiceSeconds: 0,
     // Riyaaz: your Sa, stage, daily log and the golden-voice ingredients.
     riyaaz: { sa: null, stage: 1, stageSince: null, days: {}, ema: {}, best: { dum: 0 }, reach: {}, log: [] },
-    // What the AI teacher remembers about your takes.
-    teacher: { takes: [] },
+    // What the AI teacher remembers: condensed takes, and your conversation with it.
+    teacher: { takes: [], chat: [] },
     // Singer styles the teacher has learned: id -> { id, singer, songs, profile, trainedAt }
     styles: {},
-    settings: { input: 'mic', guideVolume: 0.6, backingVolume: 0.8, speak: false, market: 'in', notation: 'sargam', tanpuraVolume: 0.35 },
+    settings: { input: 'mic', guideVolume: 0.6, backingVolume: 0.8, speak: false, market: 'in', notation: 'sargam', tanpuraVolume: 0.35, teacherVoice: true },
   };
 }
 

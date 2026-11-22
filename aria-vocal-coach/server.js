@@ -1,17 +1,22 @@
-// Aria local server: serves the app and proxies song search / 30-second previews
-// from Apple's public iTunes Search API (no key needed). Zero dependencies.
+// Aria local server: serves the app, proxies song search / 30-second previews from Apple's
+// public iTunes Search API (no key needed), and runs the talking AI teacher through Claude.
 //
 // Security notes:
 //  - /api/preview only fetches https URLs on Apple's preview hosts (allowlist), with
 //    redirects disabled, a size cap and a content-type check — it is not an open proxy.
 //  - Static files are resolved inside ./public only (no path traversal).
 //  - Binds to 127.0.0.1 by default; browsers only allow the microphone on localhost/https.
+//  - The Claude API key never leaves this process. /api/teacher/chat accepts only same-origin
+//    JSON POSTs addressed to localhost (Host allowlist stops DNS rebinding; the exact Origin
+//    check stops other websites from spending your key), with size, rate and daily caps.
 
 import http from 'node:http';
 import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import Anthropic from '@anthropic-ai/sdk';
+import { teacherConfig, credentialsConfigured, validateChat, streamTeacherReply } from './teacher-chat.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -250,15 +255,134 @@ async function handleStatic(url, req, res) {
   createReadStream(file).on('error', () => res.destroy()).pipe(res);
 }
 
-export function createServer() {
+// ---------------------------------------------------------------- AI teacher
+
+const MAX_CHAT_BODY = 64 * 1024;
+const chatHits = new Map();
+
+/** Reject anything that isn't the app itself, on this machine, talking to us. */
+export function localSameOrigin(req) {
+  const host = String(req.headers.host || '').toLowerCase();
+  const port = req.socket.localPort;
+  if (![`localhost:${port}`, `127.0.0.1:${port}`, `[::1]:${port}`].includes(host)) return 'The teacher only answers on localhost.';
+  if (req.headers.origin !== `http://${host}`) return 'Cross-site requests are not allowed.';
+  const site = req.headers['sec-fetch-site'];
+  if (site && site !== 'same-origin') return 'Cross-site requests are not allowed.';
+  return null;
+}
+
+async function readJsonBody(req, limit) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > limit) {
+      const err = new Error('Request too large.');
+      err.status = 413;
+      throw err;
+    }
+    chunks.push(chunk);
+  }
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch {
+    const err = new Error('Request body is not valid JSON.');
+    err.status = 400;
+    throw err;
+  }
+}
+
+function teacherErrorMessage(err) {
+  if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) {
+    return 'Claude rejected the API key. Check ANTHROPIC_API_KEY and restart Aria.';
+  }
+  if (err instanceof Anthropic.RateLimitError) return 'Claude is busy (rate limit). Try again in a minute.';
+  if (err instanceof Anthropic.APIConnectionError) return 'I couldn’t reach Claude — are you online?';
+  if (err instanceof Anthropic.BadRequestError) return `Claude couldn’t take that request (${err.message.slice(0, 160)}).`;
+  if (err instanceof Anthropic.APIError) return `Claude had a problem (${err.status ?? 'error'}). Try again.`;
+  if (/auth|credential|api key/i.test(String(err?.message))) return 'No Claude credentials found. Set ANTHROPIC_API_KEY and restart Aria.';
+  return 'Something went wrong talking to the teacher.';
+}
+
+function makeTeacher({ env, teacherClient }) {
+  const config = teacherConfig(env);
+  let client = teacherClient || null;
+  const day = { date: '', count: 0 };
+  const available = () => Boolean(teacherClient) || credentialsConfigured(env);
+  const getClient = () => (client ||= new Anthropic());
+
+  async function status(res) {
+    json(res, 200, { available: available(), model: config.model });
+  }
+
+  async function chat(req, res) {
+    const blocked = localSameOrigin(req);
+    if (blocked) return json(res, 403, { error: blocked });
+    if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) return json(res, 415, { error: 'Send JSON.' });
+    if (!available()) return json(res, 503, { error: 'The AI teacher isn’t connected. Set ANTHROPIC_API_KEY and restart Aria.' });
+    const ip = req.socket.remoteAddress || 'unknown';
+    if (rateLimitedIn(chatHits, ip, 15)) return json(res, 429, { error: 'Let’s slow down a little — a few seconds between questions.' });
+    const today = new Date().toISOString().slice(0, 10);
+    if (day.date !== today) Object.assign(day, { date: today, count: 0 });
+    if (day.count >= config.dailyCap) return json(res, 429, { error: 'That’s today’s conversation limit — rest your voice and come back tomorrow.' });
+
+    let body;
+    try {
+      body = await readJsonBody(req, MAX_CHAT_BODY);
+    } catch (err) {
+      return json(res, err.status || 400, { error: err.message });
+    }
+    const v = validateChat(body);
+    if (v.error) return json(res, 400, { error: v.error });
+    day.count++;
+
+    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-store' });
+    const line = (obj) => !res.writableEnded && res.write(`${JSON.stringify(obj)}\n`);
+    const abort = new AbortController();
+    res.on('close', () => abort.abort());
+    try {
+      const out = await streamTeacherReply({ client: getClient(), config, messages: v.messages, context: v.context, signal: abort.signal, send: line });
+      line({ type: 'done', stop: out.stop, model: out.model, usage: out.usage });
+    } catch (err) {
+      if (!(err instanceof Anthropic.APIUserAbortError) && !abort.signal.aborted) line({ type: 'error', error: teacherErrorMessage(err) });
+    }
+    res.end();
+  }
+
+  return { status, chat };
+}
+
+function rateLimitedIn(map, key, limit, windowMs = 60_000) {
+  const now = Date.now();
+  const entry = map.get(key);
+  if (!entry || now > entry.reset) {
+    map.set(key, { count: 1, reset: now + windowMs });
+    return false;
+  }
+  entry.count++;
+  return entry.count > limit;
+}
+
+/**
+ * @param {object} [options]
+ * @param {object} [options.env]            environment to read settings/credentials from
+ * @param {object} [options.teacherClient]  an Anthropic-compatible client (tests inject a fake)
+ */
+export function createServer({ env = process.env, teacherClient = null } = {}) {
+  const teacher = makeTeacher({ env, teacherClient });
   return http.createServer(async (req, res) => {
     try {
+      const url = new URL(req.url || '/', 'http://localhost');
+      if (url.pathname === '/api/teacher/chat') {
+        if (req.method !== 'POST') return send(res, 405, 'Method not allowed', { Allow: 'POST' });
+        return await teacher.chat(req, res);
+      }
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         return send(res, 405, 'Method not allowed', { Allow: 'GET, HEAD' });
       }
-      const url = new URL(req.url || '/', 'http://localhost');
       if (url.pathname.startsWith('/api/')) {
         if (rateLimited(req.socket.remoteAddress || 'unknown')) return json(res, 429, { error: 'Too many requests — slow down a little.' });
+        if (url.pathname === '/api/teacher/status') return await teacher.status(res);
         if (url.pathname === '/api/search') return await handleSearch(url, res);
         if (url.pathname === '/api/charts') return await handleCharts(url, res);
         if (url.pathname === '/api/preview') return await handlePreview(url, req, res);
