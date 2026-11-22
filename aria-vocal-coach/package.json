@@ -1,0 +1,14 @@
+{
+  "name": "aria-vocal-coach",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Aria — live singing coach: real-time pitch coaching, a beginner-to-master curriculum, and sing-along with songs from the web.",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
