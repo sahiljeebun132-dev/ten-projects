@@ -16,8 +16,8 @@ function defaults() {
     practiceSeconds: 0,
     // Riyaaz: your Sa, stage, daily log and the golden-voice ingredients.
     riyaaz: { sa: null, stage: 1, stageSince: null, days: {}, ema: {}, best: { dum: 0 }, reach: {}, log: [] },
-    // What the AI teacher remembers: condensed takes, and your conversation with it.
-    teacher: { takes: [], chat: [] },
+    // What the AI teacher remembers: condensed takes, your conversation, and live lessons.
+    teacher: { takes: [], chat: [], lessons: [] },
     // Singer styles the teacher has learned: id -> { id, singer, songs, profile, trainedAt }
     styles: {},
     settings: { input: 'mic', guideVolume: 0.6, backingVolume: 0.8, speak: false, market: 'in', notation: 'sargam', tanpuraVolume: 0.35, teacherVoice: true },
@@ -226,6 +226,14 @@ export function riyaazMinutesToday() {
 export function recordTake(condensed) {
   state.teacher.takes.push(condensed);
   if (state.teacher.takes.length > 60) state.teacher.takes.splice(0, state.teacher.takes.length - 60);
+  save();
+}
+
+/** Keep a finished live lesson: { at, minutes, usedMin, focus, recap, homework, takes: [{ title, score }] }. */
+export function recordLesson(lesson) {
+  const list = (state.teacher.lessons ||= []);
+  list.push(lesson);
+  if (list.length > 20) list.splice(0, list.length - 20);
   save();
 }
 

@@ -6,9 +6,10 @@
 //    redirects disabled, a size cap and a content-type check — it is not an open proxy.
 //  - Static files are resolved inside ./public only (no path traversal).
 //  - Binds to 127.0.0.1 by default; browsers only allow the microphone on localhost/https.
-//  - The Claude API key never leaves this process. /api/teacher/chat accepts only same-origin
-//    JSON POSTs addressed to localhost (Host allowlist stops DNS rebinding; the exact Origin
-//    check stops other websites from spending your key), with size, rate and daily caps.
+//  - The Claude API key never leaves this process. /api/teacher/chat and /api/teacher/lesson/*
+//    accept only same-origin JSON POSTs addressed to localhost (Host allowlist stops DNS
+//    rebinding; the exact Origin check stops other websites from spending your key), with size,
+//    rate and daily caps. Lesson transcripts stay in this process, keyed by unguessable ids.
 
 import http from 'node:http';
 import { stat } from 'node:fs/promises';
@@ -17,6 +18,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 import { teacherConfig, credentialsConfigured, validateChat, streamTeacherReply } from './teacher-chat.js';
+import { createLessonStore, validateLessonStart, validateLessonStep, stepMessage, runLessonTurn, MAX_TURNS } from './teacher-lesson.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -258,7 +260,7 @@ async function handleStatic(url, req, res) {
 // ---------------------------------------------------------------- AI teacher
 
 const MAX_CHAT_BODY = 64 * 1024;
-const chatHits = new Map();
+const MAX_LESSON_BODY = 512 * 1024; // a lesson step can carry the pitch picture (PNG)
 
 /** Reject anything that isn't the app itself, on this machine, talking to us. */
 export function localSameOrigin(req) {
@@ -308,38 +310,56 @@ function makeTeacher({ env, teacherClient }) {
   const config = teacherConfig(env);
   let client = teacherClient || null;
   const day = { date: '', count: 0 };
+  const chatHits = new Map(); // per-IP request times for the teacher endpoints
+  const lessons = createLessonStore();
   const available = () => Boolean(teacherClient) || credentialsConfigured(env);
   const getClient = () => (client ||= new Anthropic());
+  const rollDay = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (day.date !== today) Object.assign(day, { date: today, count: 0 });
+  };
+  const capReached = () => (rollDay(), day.count >= config.dailyCap);
+  const CAP_MESSAGE = 'That’s today’s conversation limit — rest your voice and come back tomorrow.';
 
   async function status(res) {
     json(res, 200, { available: available(), model: config.model });
   }
 
-  async function chat(req, res) {
+  /**
+   * The gate every teacher POST passes. Sends the refusal and returns null, or returns { body }.
+   * `cap: false` leaves the daily cap to the caller (lesson calls that may not reach Claude).
+   */
+  async function admit(req, res, maxBody, { cap = true } = {}) {
+    const refuse = (status, error) => (json(res, status, { error }), null);
     const blocked = localSameOrigin(req);
-    if (blocked) return json(res, 403, { error: blocked });
-    if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) return json(res, 415, { error: 'Send JSON.' });
-    if (!available()) return json(res, 503, { error: 'The AI teacher isn’t connected. Set ANTHROPIC_API_KEY and restart Aria.' });
-    const ip = req.socket.remoteAddress || 'unknown';
-    if (rateLimitedIn(chatHits, ip, 15)) return json(res, 429, { error: 'Let’s slow down a little — a few seconds between questions.' });
-    const today = new Date().toISOString().slice(0, 10);
-    if (day.date !== today) Object.assign(day, { date: today, count: 0 });
-    if (day.count >= config.dailyCap) return json(res, 429, { error: 'That’s today’s conversation limit — rest your voice and come back tomorrow.' });
-
-    let body;
+    if (blocked) return refuse(403, blocked);
+    if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) return refuse(415, 'Send JSON.');
+    if (!available()) return refuse(503, 'The AI teacher isn’t connected. Set ANTHROPIC_API_KEY and restart Aria.');
+    if (rateLimitedIn(chatHits, req.socket.remoteAddress || 'unknown', 15)) return refuse(429, 'Let’s slow down a little — a few seconds between questions.');
+    if (cap && capReached()) return refuse(429, CAP_MESSAGE);
     try {
-      body = await readJsonBody(req, MAX_CHAT_BODY);
+      return { body: await readJsonBody(req, maxBody) };
     } catch (err) {
-      return json(res, err.status || 400, { error: err.message });
+      return refuse(err.status || 400, err.message);
     }
-    const v = validateChat(body);
+  }
+
+  /** Start an NDJSON reply; aborts the Claude call if the browser goes away. */
+  function openStream(res) {
+    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-store' });
+    const abort = new AbortController();
+    res.on('close', () => abort.abort());
+    return { abort, line: (obj) => !res.writableEnded && res.write(`${JSON.stringify(obj)}\n`) };
+  }
+
+  async function chat(req, res) {
+    const got = await admit(req, res, MAX_CHAT_BODY);
+    if (!got) return;
+    const v = validateChat(got.body);
     if (v.error) return json(res, 400, { error: v.error });
     day.count++;
 
-    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-store' });
-    const line = (obj) => !res.writableEnded && res.write(`${JSON.stringify(obj)}\n`);
-    const abort = new AbortController();
-    res.on('close', () => abort.abort());
+    const { line, abort } = openStream(res);
     try {
       const out = await streamTeacherReply({ client: getClient(), config, messages: v.messages, context: v.context, signal: abort.signal, send: line });
       line({ type: 'done', stop: out.stop, model: out.model, usage: out.usage });
@@ -349,7 +369,84 @@ function makeTeacher({ env, teacherClient }) {
     res.end();
   }
 
-  return { status, chat };
+  // ---- teacher-led lessons: the transcript stays here; the browser sends takes and replies.
+
+  async function runTurn(res, lesson, userMessage, { start = false } = {}) {
+    lesson.busy = true;
+    const { line, abort } = openStream(res);
+    if (start) line({ type: 'lesson', id: lesson.id, minutes: lesson.minutes });
+    const allowCall = () => {
+      rollDay();
+      if (day.count >= config.dailyCap || lesson.calls >= MAX_TURNS) return false;
+      day.count++;
+      lesson.calls++;
+      return true;
+    };
+    try {
+      const out = await runLessonTurn({ client: getClient(), config, lesson, userMessage, signal: abort.signal, send: line, allowCall });
+      line({ type: 'done', turn: lesson.turn, waiting: out.waiting, stop: out.stop, model: out.model, usage: out.usage, usedMin: lesson.usedMin() });
+    } catch (err) {
+      if (!(err instanceof Anthropic.APIUserAbortError) && !abort.signal.aborted) line({ type: 'error', error: err.status === 429 ? err.message : teacherErrorMessage(err) });
+    } finally {
+      lesson.busy = false;
+      lesson.lastAt = Date.now();
+    }
+    res.end();
+  }
+
+  async function lessonStart(req, res) {
+    const got = await admit(req, res, MAX_CHAT_BODY, { cap: false });
+    if (!got) return;
+    const v = validateLessonStart(got.body);
+    if (v.error) return json(res, 400, { error: v.error });
+    // A retried start (its reply was lost) finds the lesson it already created.
+    const known = lessons.byKey(v.key);
+    if (known) {
+      if (known.busy) return json(res, 409, { error: 'Your teacher is still answering.' });
+      if (known.turn > 0) return replayTurn(res, known, { start: true });
+      if (capReached()) return json(res, 429, { error: CAP_MESSAGE });
+      return runTurn(res, known, known.opening, { start: true });
+    }
+    if (capReached()) return json(res, 429, { error: CAP_MESSAGE });
+    const lesson = lessons.create(v);
+    if (!lesson) return json(res, 503, { error: 'Too many lessons are running at once — finish one first.' });
+    await runTurn(res, lesson, lesson.opening, { start: true });
+  }
+
+  async function lessonStep(req, res) {
+    const got = await admit(req, res, MAX_LESSON_BODY, { cap: false });
+    if (!got) return;
+    const v = validateLessonStep(got.body);
+    if (v.error) return json(res, 400, { error: v.error });
+    const lesson = lessons.get(v.id);
+    if (!lesson) return json(res, 404, { error: 'That lesson has ended — start a new one.' });
+    if (lesson.busy) return json(res, 409, { error: 'Your teacher is still answering.' });
+    // The browser missed the last reply (it went away mid-stream): send it again, free.
+    if (v.turn === lesson.turn - 1 && lesson.lastReply) return replayTurn(res, lesson);
+    if (v.turn !== lesson.turn) return json(res, 409, { error: 'This lesson is out of step — start a new one.' });
+    if (lesson.calls >= MAX_TURNS) return json(res, 429, { error: 'This lesson has gone on a long time — start a fresh one.' });
+    if (capReached()) return json(res, 429, { error: CAP_MESSAGE });
+    if (v.usedMin != null) lesson.reportedMin = v.usedMin;
+    let userMessage = lesson.opening; // turn 0: the opening never completed, so run it again
+    if (lesson.turn > 0) {
+      const m = stepMessage(lesson, v, lesson.usedMin());
+      if (m.error) return json(res, 400, { error: m.error });
+      userMessage = m.message;
+    }
+    await runTurn(res, lesson, userMessage);
+  }
+
+  function replayTurn(res, lesson, { start = false } = {}) {
+    const { line } = openStream(res);
+    if (start) line({ type: 'lesson', id: lesson.id, minutes: lesson.minutes });
+    const r = lesson.lastReply;
+    if (r.text) line({ type: 'text', text: r.text });
+    if (r.action) line({ type: 'action', action: r.action });
+    line({ type: 'done', turn: lesson.turn, waiting: r.waiting, stop: 'replay', usedMin: lesson.usedMin() });
+    res.end();
+  }
+
+  return { status, chat, lessonStart, lessonStep };
 }
 
 function rateLimitedIn(map, key, limit, windowMs = 60_000) {
@@ -373,9 +470,10 @@ export function createServer({ env = process.env, teacherClient = null } = {}) {
   return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || '/', 'http://localhost');
-      if (url.pathname === '/api/teacher/chat') {
+      const post = { '/api/teacher/chat': teacher.chat, '/api/teacher/lesson/start': teacher.lessonStart, '/api/teacher/lesson/step': teacher.lessonStep };
+      if (Object.hasOwn(post, url.pathname)) {
         if (req.method !== 'POST') return send(res, 405, 'Method not allowed', { Allow: 'POST' });
-        return await teacher.chat(req, res);
+        return await post[url.pathname](req, res);
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         return send(res, 405, 'Method not allowed', { Allow: 'GET, HEAD' });

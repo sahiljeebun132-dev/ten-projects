@@ -14,8 +14,15 @@ import { stageOf } from '../data/riyaaz.js';
 import { goPractice, riyaazHandoff, nextRiyaaz, styleDrillHandoff } from '../runners.js';
 import { summarizeTake } from '../teacherTalk.js';
 
-export function practiceView(el) {
-  const p = handoff.practice;
+/**
+ * @param {HTMLElement} el
+ * @param {string[]} [_params]
+ * @param {object} [opts] embedded use inside a live lesson:
+ *   { practice, embedded: true, onStart(), onTake({ p, result, frames, styleCmp, insights, seconds }) }
+ */
+export function practiceView(el, _params = [], opts = {}) {
+  const embedded = Boolean(opts.embedded);
+  const p = opts.practice || handoff.practice;
   if (!p) {
     location.hash = '#/learn';
     return;
@@ -26,12 +33,12 @@ export function practiceView(el) {
 
   el.innerHTML = `
     <div class="practice-head">
-      <a class="back" href="${esc(p.backHref || '#/learn')}">← Back</a>
+      ${embedded ? '' : `<a class="back" href="${esc(p.backHref || '#/learn')}">← Back</a>`}
       <div class="spacer"></div>
       ${hasSa ? `<span class="pill gold">Sa = ${esc(noteName(p.sa))} · ${esc(harmoniumScale(p.sa))}</span>` : ''}
       <span class="pill">±${p.tolerance}¢ tolerance</span>
     </div>
-    <h1 style="margin-bottom:2px">${esc(p.title)}</h1>
+    ${embedded ? `<h2 style="margin:6px 0 2px">${esc(p.title)}</h2>` : `<h1 style="margin-bottom:2px">${esc(p.title)}</h1>`}
     <p class="muted">${esc(p.subtitle || modeText(p))}</p>
 
     <div id="play-area">
@@ -97,6 +104,7 @@ export function practiceView(el) {
     stop: el.querySelector('#stop'),
   };
   let session = null;
+  let disposed = false; // the screen was left (perhaps while the mic permission prompt was open)
   let lastCueKind = null;
   let lastCount = null;
   let startedAt = 0;
@@ -143,7 +151,8 @@ export function practiceView(el) {
       return null;
     });
     ui.start.disabled = false;
-    if (!eng) return;
+    if (!eng || disposed) return;
+    opts.onStart?.();
     startTanpura();
     el.querySelector('#results').innerHTML = '';
     el.querySelector('#play-area').classList.remove('hidden');
@@ -264,6 +273,12 @@ export function practiceView(el) {
     }
 
     const takeId = p.riyaaz?.id || p.lessonId || p.styleDrill || p.songKey || p.title;
+    if (embedded) {
+      recordTake(condense(result, { id: takeId, kind: p.riyaaz ? 'riyaaz' : p.lessonId ? 'lesson' : p.styleDrill ? 'style' : 'exercise', title: p.title, styleMatch: styleCmp?.match }));
+      showEmbeddedResults(result, { gained, styleCmp, styleRec, riy, finished });
+      opts.onTake?.({ p, result, frames: finished?.frames || [], styleCmp, insights, seconds });
+      return;
+    }
     const note = teacherNote(result, prevTakes, {
       id: takeId,
       next: nextRx && passed ? `Next in today’s riyaaz: ${nextRx.title}.` : passed && next ? `Next lesson: ${next.title}.` : null,
@@ -355,11 +370,44 @@ export function practiceView(el) {
     }
   }
 
+  /** Inside a lesson: the score and the note strip; the teacher gives the feedback. */
+  async function showEmbeddedResults(result, { gained, styleCmp, styleRec, riy, finished }) {
+    ui.start.classList.add('hidden');
+    const nm = (m) => (sargam() ? swaraName(m, p.sa) : noteName(m));
+    const strip = result.perNote
+      .map((n) => `<span class="${n.hit ? 'hit' : 'miss'}" title="${esc(noteName(n.midi))}: ${n.voicedFrac > 0.3 ? `${Math.round(n.meanErr)}¢` : 'not sung'}">${esc(nm(n.midi))}</span>`)
+      .join('');
+    const box = el.querySelector('#results');
+    box.innerHTML = `
+      <div class="card glow" style="margin-top:14px">
+        <div class="results">
+          ${ringHtml(result.score)}
+          <div class="stack">
+            <div class="row">${starsHtml(result.stars)} <span class="pill brand">+${gained.xp} XP</span>${gained.newBest ? '<span class="pill good">New best!</span>' : ''}${riy?.advanced ? `<span class="pill gold">Stage ${riy.stage}!</span>` : ''}</div>
+            <div class="metrics">
+              <div class="metric"><b>${result.accuracy}%</b><span>In tune</span></div>
+              <div class="metric"><b>${result.notesHit}/${result.notesTotal}</b><span>Notes hit</span></div>
+              <div class="metric"><b>${result.stability}</b><span>Steadiness</span></div>
+              <div class="metric"><b>${result.longestHold}s</b><span>Longest steady note</span></div>
+              ${styleCmp ? `<div class="metric"><b>${styleCmp.match}%</b><span>${esc(styleRec.singer)} style</span></div>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="note-strip" style="margin-top:12px">${strip}</div>
+        <div id="take" style="margin-top:12px"></div>
+      </div>`;
+    if (riy?.advanced) toast(`${stageOf(riy.stage).icon} You reached riyaaz stage ${riy.stage}: ${stageOf(riy.stage).name}!`, 'good', 5000);
+    const url = finished?.takeReady ? await finished.takeReady : null;
+    if (url && box.isConnected) box.querySelector('#take').innerHTML = `<audio controls src="${esc(url)}" style="width:100%" aria-label="Hear your take"></audio>`;
+  }
+
   return () => {
+    disposed = true;
     session?.stop();
     engine.guide?.stopTanpura();
     canvas.destroy();
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    // In a lesson the teacher may still be talking; the lesson screen owns speech.
+    if (!embedded && 'speechSynthesis' in window) speechSynthesis.cancel();
   };
 }
 

@@ -5,10 +5,10 @@ import { analyzeSong } from '../audio/analyze.js';
 import { aggregateStyles, signature, keyAdvice, styleDrills } from '../audio/style.js';
 import { lessonPlan } from '../audio/teacher.js';
 import { noteName } from '../audio/notes.js';
-import { state as store, save, saveStyle, deleteStyle, practiceRange, riyaazSa, setSetting, styleById, tierInfo, nextLesson, isUnlocked } from '../store.js';
-import { goPractice, riyaazHandoff, styleDrillHandoff } from '../runners.js';
+import { state as store, save, saveStyle, deleteStyle, practiceRange, riyaazSa, setSetting, styleById, tierInfo, nextLesson } from '../store.js';
+import { goPractice, riyaazHandoff, styleDrillHandoff, openExercise } from '../runners.js';
 import { buildTeacherContext, parseReply, visibleText, historyForRequest, teacherStatus, streamTeacher, createSpeaker, createListener } from '../teacherTalk.js';
-import { exerciseById } from '../data/riyaaz.js';
+import { hasLiveLesson } from './live.js';
 
 const QUICK_QUESTIONS = [
   'Plan my riyaaz for this week',
@@ -30,6 +30,11 @@ export function teacherView(root, params = []) {
   root.innerHTML = `
     <h1>🧑‍🏫 Your AI vocal teacher</h1>
     <p class="muted">Talk to me about your singing — I read every take you sing, remember your habits and plan your lessons, like a real guru. Teach me a singer you love and I’ll coach you towards their technique.</p>
+    <a class="card live-cta" href="#/live">
+      <span class="q-ico">🎓</span>
+      <span><b>${hasLiveLesson() ? 'Continue your live lesson' : 'Take a live lesson with me'}</b><br><span class="small muted">10–20 minutes. I choose each exercise, listen to every take, tell you what to change and decide what’s next.</span></span>
+      <span class="btn small">${hasLiveLesson() ? 'Continue →' : 'Start →'}</span>
+    </a>
     <div id="chat-root"></div>
     <div id="rest"></div>`;
   const el = root.querySelector('#rest');
@@ -441,23 +446,7 @@ function mountChat(host, { autoAsk = false } = {}) {
     if (!b) return;
     const [kind, styleId, id] = b.dataset.act.split('|');
     speaker.stop();
-    if (kind === 'lesson') {
-      if (!isUnlocked(id)) return toast('That lesson unlocks after the ones before it on the Learn path.', 'info');
-      location.hash = `#/lesson/${id}`;
-    } else if (kind === 'riyaaz') {
-      const ex = exerciseById(id);
-      if (riyaazSa() == null) {
-        toast('First set your Sa on the Riyaaz page.', 'info');
-        location.hash = '#/riyaaz';
-      } else if (ex && ex.stage > store.riyaaz.stage) {
-        toast(`${ex.title} unlocks at riyaaz stage ${ex.stage}.`, 'info');
-      } else {
-        goPractice(riyaazHandoff(id));
-      }
-    } else if (kind === 'drill') {
-      const h = styleDrillHandoff(styleId, id);
-      if (h) goPractice(h);
-    }
+    openExercise({ kind, id, styleId });
   });
 
   const listener = createListener({
@@ -509,7 +498,7 @@ function mountChat(host, { autoAsk = false } = {}) {
     destroy() {
       abort?.abort();
       speaker.stop();
-      listener?.stop();
+      listener?.cancel();
     },
   };
 }
