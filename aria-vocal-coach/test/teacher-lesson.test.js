@@ -14,6 +14,8 @@ import {
   createLessonStore,
   runLessonTurn,
   stepMessage,
+  imageCharsIn,
+  IMAGE_BUDGET,
 } from '../teacher-lesson.js';
 import { teacherConfig, TEACHER_SYSTEM } from '../teacher-chat.js';
 import { EXERCISES } from '../public/js/data/riyaaz.js';
@@ -136,7 +138,9 @@ test('the lesson prompt teaches through the tools and lists only exercises that 
 // ------------------------------------------------------------------ validation
 
 test('lesson starts need a sensible length, focus and context', () => {
-  assert.deepEqual(validateLessonStart({ minutes: 15, focus: '  breath ', context: { a: 1 } }), { minutes: 15, focus: 'breath', context: { a: 1 } });
+  assert.deepEqual(validateLessonStart({ minutes: 15, focus: '  breath ', context: { a: 1 } }), { minutes: 15, focus: 'breath', context: { a: 1 }, key: null });
+  assert.equal(validateLessonStart({ minutes: 10, key: '3f2a9c1e-77aa-4b1c-9d0e-123456789abc' }).key, '3f2a9c1e-77aa-4b1c-9d0e-123456789abc');
+  assert.match(validateLessonStart({ minutes: 10, key: 'no spaces allowed' }).error, /key/);
   assert.match(validateLessonStart({ minutes: 45 }).error, /10, 15 or 20/);
   assert.match(validateLessonStart({ minutes: 10, focus: 'x'.repeat(201) }).error, /under 200/);
   assert.match(validateLessonStart({ minutes: 10, context: [] }).error, /object/);
@@ -145,7 +149,9 @@ test('lesson starts need a sensible length, focus and context', () => {
 
 test('lesson steps are checked: id, turn, result status, picture and sizes', () => {
   const id = 'a'.repeat(32);
-  assert.deepEqual(validateLessonStep({ id, turn: 2, message: ' hi ' }), { id, turn: 2, result: null, message: 'hi' });
+  assert.deepEqual(validateLessonStep({ id, turn: 2, message: ' hi ' }), { id, turn: 2, result: null, message: 'hi', usedMin: null });
+  assert.equal(validateLessonStep({ id, turn: 2, message: 'hi', usedMin: 7 }).usedMin, 7);
+  assert.match(validateLessonStep({ id, turn: 2, message: 'hi', usedMin: 1.5 }).error, /usedMin/);
   assert.match(validateLessonStep({ id: 'nope', turn: 1 }).error, /Unknown lesson/);
   assert.match(validateLessonStep({ id, turn: -1 }).error, /turn/);
   assert.match(validateLessonStep({ id, turn: 1, result: { status: 'great' } }).error, /done, skipped or failed/);
@@ -262,6 +268,10 @@ test('an exercise that can’t run is sent back to Claude, and the browser only 
     assert.equal(fixMsg.content[0].tool_use_id, 'toolu_bad');
     assert.equal(fixMsg.content[0].is_error, true);
     assert.match(fixMsg.content[0].content, /above the student’s riyaaz stage/);
+    assert.match(fixMsg.content[0].content, /hasn't seen or heard this turn/);
+    // The browser is told to drop the rejected turn's text before the corrected one streams.
+    const kinds = r.lines.map((l) => l.type);
+    assert.ok(kinds.indexOf('retry') > kinds.indexOf('text') && kinds.indexOf('retry') < kinds.lastIndexOf('text'));
   });
 });
 
@@ -391,19 +401,89 @@ test('a step message owes results for every tool call and ends with the clock', 
   assert.match(stepMessage({ ...lesson, pending: { toolUseId: 'f', name: 'finish_lesson' } }, { result: null, message: '' }, 1).error, /follow-up/);
 });
 
-test('idle lessons expire and the oldest idle one makes room', () => {
+test('lessons under way are never evicted; finished or abandoned ones make room; idle ones expire', () => {
   let t = 0;
-  const store = createLessonStore({ ttlMs: 1000, max: 2, now: () => t });
-  const a = store.create({ minutes: 10, focus: '', context: null });
-  t = 10;
+  const store = createLessonStore({ ttlMs: 10_000, abandonedMs: 1000, max: 2, now: () => t });
+  const a = store.create({ minutes: 10, focus: '', context: null, key: 'key-aaaaaaaa' });
   const b = store.create({ minutes: 10, focus: '', context: null });
-  t = 20;
+  assert.equal(store.create({ minutes: 10, focus: '', context: null }), null, 'full of active lessons: refuse');
+  b.finished = true;
   const c = store.create({ minutes: 10, focus: '', context: null });
-  assert.equal(store.get(a.id), null, 'oldest evicted');
-  assert.ok(store.get(b.id) && store.get(c.id));
+  assert.equal(store.get(b.id), null, 'the finished lesson made room');
+  assert.ok(store.get(a.id) && store.get(c.id));
+  assert.equal(store.byKey('key-aaaaaaaa'), a);
   t = 5000;
-  assert.equal(store.get(b.id), null, 'expired');
+  c.lastAt = 4900;
+  store.create({ minutes: 10, focus: '', context: null });
+  assert.equal(store.get(a.id), null, 'abandoned for longer than abandonedMs');
+  assert.equal(store.byKey('key-aaaaaaaa'), null);
+  t = 100_000;
+  assert.equal(store.get(c.id), null, 'expired');
   assert.equal(store.size, 0);
+});
+
+test('a retried start with the same key finds its lesson instead of opening another', async () => {
+  await withServer([exerciseTurn()], async ({ client, start }) => {
+    const key = 'b1946ac9-2d5f-4f6e-8c1a-0123456789ab';
+    const first = await start({ key });
+    const again = await start({ key });
+    assert.equal(again.status, 200);
+    assert.equal(again.lines[0].type, 'lesson');
+    assert.equal(again.lines[0].id, first.lines[0].id);
+    assert.equal(client.calls.length, 1, 'the opening is replayed, not re-asked');
+    assert.equal(actionLine(again).id, 'omkar');
+    assert.equal(doneLine(again).stop, 'replay');
+  });
+});
+
+test('at the daily cap a missed reply can still be replayed, but nothing new reaches Claude', async () => {
+  await withServer(
+    [exerciseTurn()],
+    async ({ client, start, step }) => {
+      const id = (await start()).lines[0].id;
+      const replay = await step({ id, turn: 0, message: 'hi' });
+      assert.equal(replay.status, 200);
+      assert.equal(doneLine(replay).stop, 'replay');
+      const more = await step({ id, turn: 1, result: { status: 'done', take: { score: 70 } } });
+      assert.equal(more.status, 429);
+      assert.equal(client.calls.length, 1);
+    },
+    { ARIA_TEACHER_DAILY_CAP: '1' },
+  );
+});
+
+test('the clock uses the minutes the browser saw the student in the lesson', async () => {
+  await withServer([exerciseTurn(), exerciseTurn(undefined, { id: 'toolu_2' })], async ({ client, start, step }) => {
+    const id = (await start()).lines[0].id;
+    await step({ id, turn: 1, usedMin: 7, result: { status: 'done', take: { score: 70 } } });
+    const blocks = client.calls[1].params.messages[2].content;
+    assert.equal(blocks[blocks.length - 1].text, '[Lesson clock: 7 of 15 minutes used]');
+  });
+});
+
+test('a stream retry is a Claude call too: it is refused once the caps are reached', async () => {
+  const store = createLessonStore();
+  const lesson = store.create({ minutes: 10, focus: '', context: CONTEXT });
+  const client = scriptedClient([{ iteratorError: new Error('Unable to parse tool parameter JSON') }, exerciseTurn()]);
+  let allowed = 1;
+  await assert.rejects(
+    runLessonTurn({ client, config: teacherConfig({}), lesson, userMessage: lesson.opening, send: () => {}, allowCall: () => allowed-- > 0 }),
+    /Unable to parse/,
+  );
+  assert.equal(client.calls.length, 1);
+  assert.equal(lesson.turn, 0);
+});
+
+test('pictures stop once a lesson has used its picture budget', () => {
+  const big = { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'x', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'A'.repeat(IMAGE_BUDGET) } }] }] };
+  assert.equal(imageCharsIn([big]), IMAGE_BUDGET);
+  const lesson = { minutes: 15, messages: [big], pending: { toolUseId: 't1', name: 'start_exercise' }, owed: [] };
+  const { message } = stepMessage(lesson, { result: { status: 'done', take: { score: 80 }, image: PNG } }, 3);
+  const result = message.content[0];
+  assert.equal(result.content.length, 1, 'text only');
+  assert.match(JSON.parse(result.content[0].text).note, /picture budget/);
+  const roomy = stepMessage({ ...lesson, messages: [] }, { result: { status: 'done', take: { score: 80 }, image: PNG } }, 3).message;
+  assert.equal(roomy.content[0].content[1].type, 'image');
 });
 
 // ------------------------------------------------------------------ browser side

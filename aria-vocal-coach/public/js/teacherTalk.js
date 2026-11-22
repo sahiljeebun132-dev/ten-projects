@@ -234,8 +234,8 @@ export async function streamTeacher({ messages, context, onText, signal }) {
  * 'text' chunks, 'retry' (drop this turn's text so far), 'action' (an exercise to run, or the
  * lesson's finish), then 'done' with { turn, waiting: 'exercise'|'student'|'finished'|'ended' }.
  */
-export function startLesson({ minutes, focus, context }, { signal, onLine }) {
-  return postLines('/api/teacher/lesson/start', { minutes, focus, context }, { signal, onLine });
+export function startLesson({ minutes, focus, context, key }, { signal, onLine }) {
+  return postLines('/api/teacher/lesson/start', { minutes, focus, context, key }, { signal, onLine });
 }
 
 /** The student's side of a lesson turn: { id, turn, result?: { status, take, image, note }, message? }. */
@@ -292,14 +292,17 @@ export function createListener({ onText, onEnd, lang = 'en-IN' }) {
   const Rec = typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
   if (!Rec) return null;
   let rec = null;
+  let cancelled = false;
   return {
     start() {
+      cancelled = false;
       rec = new Rec();
       rec.lang = lang;
       rec.interimResults = true;
       rec.continuous = false;
       let finalText = '';
       rec.onresult = (e) => {
+        if (cancelled) return;
         let interim = '';
         for (let i = e.resultIndex; i < e.results.length; i++) {
           if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
@@ -307,12 +310,17 @@ export function createListener({ onText, onEnd, lang = 'en-IN' }) {
         }
         onText((finalText + interim).trim());
       };
-      rec.onerror = () => onEnd?.('');
-      rec.onend = () => onEnd?.(finalText.trim());
+      rec.onerror = () => !cancelled && onEnd?.('');
+      rec.onend = () => !cancelled && onEnd?.(finalText.trim());
       rec.start();
     },
     stop() {
       rec?.stop();
+    },
+    /** Stop without delivering what was heard (the screen is going away). */
+    cancel() {
+      cancelled = true;
+      rec?.abort?.();
     },
   };
 }

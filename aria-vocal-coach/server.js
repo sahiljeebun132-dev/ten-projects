@@ -318,21 +318,25 @@ function makeTeacher({ env, teacherClient }) {
     const today = new Date().toISOString().slice(0, 10);
     if (day.date !== today) Object.assign(day, { date: today, count: 0 });
   };
+  const capReached = () => (rollDay(), day.count >= config.dailyCap);
+  const CAP_MESSAGE = 'That’s today’s conversation limit — rest your voice and come back tomorrow.';
 
   async function status(res) {
     json(res, 200, { available: available(), model: config.model });
   }
 
-  /** The gate every teacher POST passes. Sends the refusal and returns null, or returns { body }. */
-  async function admit(req, res, maxBody) {
+  /**
+   * The gate every teacher POST passes. Sends the refusal and returns null, or returns { body }.
+   * `cap: false` leaves the daily cap to the caller (lesson calls that may not reach Claude).
+   */
+  async function admit(req, res, maxBody, { cap = true } = {}) {
     const refuse = (status, error) => (json(res, status, { error }), null);
     const blocked = localSameOrigin(req);
     if (blocked) return refuse(403, blocked);
     if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) return refuse(415, 'Send JSON.');
     if (!available()) return refuse(503, 'The AI teacher isn’t connected. Set ANTHROPIC_API_KEY and restart Aria.');
     if (rateLimitedIn(chatHits, req.socket.remoteAddress || 'unknown', 15)) return refuse(429, 'Let’s slow down a little — a few seconds between questions.');
-    rollDay();
-    if (day.count >= config.dailyCap) return refuse(429, 'That’s today’s conversation limit — rest your voice and come back tomorrow.');
+    if (cap && capReached()) return refuse(429, CAP_MESSAGE);
     try {
       return { body: await readJsonBody(req, maxBody) };
     } catch (err) {
@@ -391,17 +395,26 @@ function makeTeacher({ env, teacherClient }) {
   }
 
   async function lessonStart(req, res) {
-    const got = await admit(req, res, MAX_CHAT_BODY);
+    const got = await admit(req, res, MAX_CHAT_BODY, { cap: false });
     if (!got) return;
     const v = validateLessonStart(got.body);
     if (v.error) return json(res, 400, { error: v.error });
+    // A retried start (its reply was lost) finds the lesson it already created.
+    const known = lessons.byKey(v.key);
+    if (known) {
+      if (known.busy) return json(res, 409, { error: 'Your teacher is still answering.' });
+      if (known.turn > 0) return replayTurn(res, known, { start: true });
+      if (capReached()) return json(res, 429, { error: CAP_MESSAGE });
+      return runTurn(res, known, known.opening, { start: true });
+    }
+    if (capReached()) return json(res, 429, { error: CAP_MESSAGE });
     const lesson = lessons.create(v);
     if (!lesson) return json(res, 503, { error: 'Too many lessons are running at once — finish one first.' });
     await runTurn(res, lesson, lesson.opening, { start: true });
   }
 
   async function lessonStep(req, res) {
-    const got = await admit(req, res, MAX_LESSON_BODY);
+    const got = await admit(req, res, MAX_LESSON_BODY, { cap: false });
     if (!got) return;
     const v = validateLessonStep(got.body);
     if (v.error) return json(res, 400, { error: v.error });
@@ -412,6 +425,8 @@ function makeTeacher({ env, teacherClient }) {
     if (v.turn === lesson.turn - 1 && lesson.lastReply) return replayTurn(res, lesson);
     if (v.turn !== lesson.turn) return json(res, 409, { error: 'This lesson is out of step — start a new one.' });
     if (lesson.calls >= MAX_TURNS) return json(res, 429, { error: 'This lesson has gone on a long time — start a fresh one.' });
+    if (capReached()) return json(res, 429, { error: CAP_MESSAGE });
+    if (v.usedMin != null) lesson.reportedMin = v.usedMin;
     let userMessage = lesson.opening; // turn 0: the opening never completed, so run it again
     if (lesson.turn > 0) {
       const m = stepMessage(lesson, v, lesson.usedMin());
@@ -421,8 +436,9 @@ function makeTeacher({ env, teacherClient }) {
     await runTurn(res, lesson, userMessage);
   }
 
-  function replayTurn(res, lesson) {
+  function replayTurn(res, lesson, { start = false } = {}) {
     const { line } = openStream(res);
+    if (start) line({ type: 'lesson', id: lesson.id, minutes: lesson.minutes });
     const r = lesson.lastReply;
     if (r.text) line({ type: 'text', text: r.text });
     if (r.action) line({ type: 'action', action: r.action });

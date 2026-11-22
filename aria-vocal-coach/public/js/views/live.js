@@ -20,7 +20,8 @@ const FOCUSES = [
   ['High notes and the break between chest and head voice', '🕊️ High notes & the break'],
   ['Murkis, runs and agility', '⚡ Murkis & runs'],
 ];
-const MAX_IMAGE = 380_000;
+const MAX_IMAGE = 190_000; // base64 characters; the server accepts up to 200 000
+const SAVE_KEY = 'aria.liveLesson'; // this tab's lesson, so a reload can pick it up again
 
 // ------------------------------------------------------------------ the lesson (outlives the screen)
 
@@ -29,12 +30,49 @@ const MAX_IMAGE = 380_000;
  * waiting: 'teacher' (a reply is streaming) | 'exercise' | 'student' | 'finished' | 'ended'
  *          | 'interrupted' (the screen was left mid-reply) | 'error'
  */
-let current = null;
+let current = restore();
 let view = null; // the mounted screen's hooks, or null
 let abort = null;
 let speaker = null;
 const voice = () => (speaker ||= createSpeaker());
 const voiceOn = () => voice().supported && store.settings.teacherVoice !== false;
+
+/** Lesson time counts only while the lesson screen is open and visible. */
+const activeMsOf = (l) => l.activeMs + (l.activeSince ? Date.now() - l.activeSince : 0);
+const usedMinOf = (l) => Math.floor(activeMsOf(l) / 60000);
+function resumeClock() {
+  if (current && !current.activeSince && !current.endedAt) current.activeSince = Date.now();
+}
+function pauseClock() {
+  if (!current?.activeSince) return;
+  current.activeMs += Date.now() - current.activeSince;
+  current.activeSince = null;
+}
+
+/** Keep this tab's lesson in sessionStorage (minus any pending picture) so a reload can resume it. */
+function persist() {
+  try {
+    if (!current) return sessionStorage.removeItem(SAVE_KEY);
+    let step = current.lastStep;
+    if (step?.body?.result?.image) step = { body: { ...step.body, result: { ...step.body.result, image: undefined } } };
+    sessionStorage.setItem(SAVE_KEY, JSON.stringify({ ...current, busy: false, activeMs: activeMsOf(current), activeSince: null, lastStep: step }));
+  } catch {
+    /* storage blocked or full: the lesson just won't survive a reload */
+  }
+}
+
+function restore() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SAVE_KEY) || 'null');
+    if (!saved || !Array.isArray(saved.log) || typeof saved.minutes !== 'number') return null;
+    // A reply that was streaming when the page went away (unloading also fails the request, which
+    // can save as an error): "Continue" replays or re-asks it.
+    if (saved.waiting === 'teacher' || saved.waiting === 'error') Object.assign(saved, { waiting: 'interrupted', error: null });
+    return { ...saved, busy: false, activeSince: null, activeMs: Number(saved.activeMs) || 0 };
+  } catch {
+    return null;
+  }
+}
 
 function refLabel(ref) {
   if (ref.kind === 'riyaaz') {
@@ -55,14 +93,16 @@ function begin({ minutes, focus }) {
     nextLesson: nextLesson()?.title ?? null,
     unlockedLessons: ALL_LESSONS.filter((l) => l.kind !== 'range' && isUnlocked(l.id)).map((l) => l.id),
   });
-  current = { id: null, minutes, focus, startedAt: Date.now(), turn: 0, log: [], waiting: 'teacher', action: null, takes: [], exNo: 0, busy: false, error: null, lastStep: null, recorded: false };
-  talk({ start: { minutes, focus, context } });
+  const key = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  current = { id: null, minutes, focus, startedAt: Date.now(), activeMs: 0, activeSince: Date.now(), turn: 0, log: [], waiting: 'teacher', action: null, takes: [], exNo: 0, busy: false, error: null, lastStep: null, recorded: false };
+  // The key lets the server recognise a retried start whose reply was lost, instead of opening a second lesson.
+  talk({ start: { minutes, focus, context, key } });
 }
 
 /** Send the student's side of the turn: { result?, message? }. */
 function send(fields) {
   if (!current?.id || current.busy) return;
-  talk({ body: { id: current.id, turn: current.turn, ...fields } });
+  talk({ body: { id: current.id, turn: current.turn, usedMin: usedMinOf(current), ...fields } });
 }
 
 function retry() {
@@ -81,6 +121,7 @@ async function talk(step) {
   lesson.waiting = 'teacher';
   const entry = { role: 'teacher', text: '' };
   lesson.log.push(entry);
+  persist();
   view?.refresh();
   voice().reset();
   abort = new AbortController();
@@ -100,9 +141,10 @@ async function talk(step) {
     } else if (msg.type === 'action') action = msg.action;
     else if (msg.type === 'done') done = msg;
   };
-  const dropEntry = () => {
+  // A reply that didn't complete is never kept: a retry or replay brings the whole of it.
+  const dropEntry = (always = false) => {
     const i = lesson.log.indexOf(entry);
-    if (i >= 0 && (!entry.text.trim() || signal.aborted)) lesson.log.splice(i, 1);
+    if (i >= 0 && (always || !entry.text.trim())) lesson.log.splice(i, 1);
   };
   try {
     if (step.start) await startLesson(step.start, { signal, onLine });
@@ -120,7 +162,7 @@ async function talk(step) {
     const extra = action?.type === 'exercise' ? action.cue : action?.type === 'finish' ? action.recap : '';
     if (voiceOn() && view) voice().feed(`${entry.text}\n${extra}`, true);
   } catch (err) {
-    dropEntry();
+    dropEntry(true);
     if (signal.aborted) lesson.waiting = 'interrupted';
     else if (err.status === 404) {
       lesson.waiting = 'ended';
@@ -132,19 +174,23 @@ async function talk(step) {
   } finally {
     lesson.busy = false;
     if (abort?.signal === signal) abort = null;
-    if (lesson === current) view?.refresh();
+    if (lesson === current) {
+      persist();
+      view?.refresh();
+    }
   }
 }
 
 function finish(lesson, action) {
   lesson.recap = action;
+  if (lesson === current) pauseClock();
   lesson.endedAt = Date.now();
   if (lesson.recorded) return;
   lesson.recorded = true;
   recordLesson({
     at: Date.now(),
     minutes: lesson.minutes,
-    usedMin: Math.max(1, Math.round((lesson.endedAt - lesson.startedAt) / 60000)),
+    usedMin: Math.max(1, Math.round(activeMsOf(lesson) / 60000)),
     focus: lesson.focus,
     recap: action.recap,
     homework: action.homework,
@@ -157,9 +203,10 @@ function leave() {
   abort?.abort();
   if (current && !current.recorded && current.takes.length) {
     current.recorded = true;
-    recordLesson({ at: Date.now(), minutes: current.minutes, usedMin: Math.max(1, Math.round((Date.now() - current.startedAt) / 60000)), focus: current.focus, recap: null, homework: [], takes: current.takes });
+    recordLesson({ at: Date.now(), minutes: current.minutes, usedMin: Math.max(1, Math.round(activeMsOf(current) / 60000)), focus: current.focus, recap: null, homework: [], takes: current.takes });
   }
   current = null;
+  persist();
   speaker?.stop();
 }
 
@@ -195,9 +242,20 @@ export function liveView(root) {
   let clock = null;
   let listener = null;
   let listening = false;
+  let inLesson = false;
   const hooks = { refresh: () => {}, live: () => {} };
   view = hooks;
+  const onVisibility = () => {
+    if (!inLesson) return;
+    if (document.hidden) {
+      pauseClock();
+      persist();
+    } else resumeClock();
+  };
+  document.addEventListener('visibilitychange', onVisibility);
 
+  // A finished lesson's recap is kept in "Your last lessons"; coming back starts afresh.
+  if (current && ['finished', 'ended'].includes(current.waiting) && !current.busy) leave();
   if (current) mountLesson();
   else mountSetup();
 
@@ -325,7 +383,7 @@ export function liveView(root) {
     const updateClock = () => {
       const label = root.querySelector('#clock');
       if (!current || !label) return;
-      const used = Math.floor(((current.endedAt || Date.now()) - current.startedAt) / 60000);
+      const used = usedMinOf(current);
       label.textContent = `${used} / ${current.minutes} min`;
       root.querySelector('#clock-bar').style.width = `${Math.min(100, (used / current.minutes) * 100)}%`;
     };
@@ -383,6 +441,10 @@ export function liveView(root) {
     }
 
     function mountExercise(a) {
+      const lesson = current;
+      const turn = current.turn;
+      // A take or skip only counts for the exercise the teacher set on this turn of this lesson.
+      const stillHere = () => lesson === current && lesson.turn === turn && lesson.waiting === 'exercise' && !lesson.busy;
       const built = practiceFor(a);
       if (built.error) {
         current.log.push({ role: 'info', text: `Couldn’t open ${refLabel(a)}, so your teacher will pick another.` });
@@ -403,12 +465,14 @@ export function liveView(root) {
         embedded: true,
         onStart: () => voice().stop(),
         onTake: (t) => {
+          if (!stillHere()) return;
           stageTook = true;
           stage.querySelector('#skip')?.remove();
           tookTake(t);
         },
       });
       stage.querySelector('#skip').addEventListener('click', () => {
+        if (!stillHere()) return;
         current.log.push({ role: 'skip', title: built.practice.title });
         send({ result: { status: 'skipped' } });
       });
@@ -430,11 +494,14 @@ export function liveView(root) {
     }
 
     function teardown() {
+      inLesson = false;
       clearInterval(clock);
       stageCleanup?.();
       stageCleanup = null;
       stageKey = null;
-      listener?.stop();
+      listener?.cancel(); // don't send half-heard speech as the screen goes away
+      pauseClock();
+      persist();
     }
 
     hooks.refresh = () => {
@@ -508,6 +575,8 @@ export function liveView(root) {
       });
     }
 
+    inLesson = true;
+    if (!document.hidden) resumeClock();
     clock = setInterval(updateClock, 10_000);
     hooks.refresh();
     hooks.teardown = teardown;
@@ -515,6 +584,7 @@ export function liveView(root) {
 
   return () => {
     view = null;
+    document.removeEventListener('visibilitychange', onVisibility);
     hooks.teardown?.();
     // Leaving mid-reply pauses the lesson; "Continue" picks it up (the server keeps it).
     if (current?.busy) abort?.abort();

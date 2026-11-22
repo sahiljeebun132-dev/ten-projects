@@ -498,7 +498,7 @@ function mountChat(host, { autoAsk = false } = {}) {
     destroy() {
       abort?.abort();
       speaker.stop();
-      listener?.stop();
+      listener?.cancel();
     },
   };
 }

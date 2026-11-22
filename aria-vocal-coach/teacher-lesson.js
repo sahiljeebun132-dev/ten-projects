@@ -16,11 +16,15 @@ import { ALL_LESSONS } from './public/js/data/curriculum.js';
 export const LESSON_MINUTES = [10, 15, 20];
 const KINDS = ['riyaaz', 'lesson', 'drill'];
 const STATUSES = ['done', 'skipped', 'failed'];
-const LIMITS = { focus: 200, message: 2000, context: 16000, take: 8000, image: 400_000, note: 300, cue: 300, recap: 1500 };
+const LIMITS = { focus: 200, message: 2000, context: 16000, take: 8000, image: 200_000, note: 300, cue: 300, recap: 1500 };
 export const MAX_TURNS = 40; // Claude calls per lesson; a 20-minute lesson needs about 12–20
 const MAX_FIXES = 2; // times Claude may be told an exercise can't run before the app gives up
 const LESSON_TTL_MS = 3 * 60 * 60_000;
+const ABANDONED_MS = 30 * 60_000; // idle this long, a lesson may make room for a new one
 const MAX_LESSONS = 12;
+// Pictures stay in the transcript (it only grows), so each lesson gets a budget of base64 characters;
+// past it, takes go to Claude without a picture. 12 lessons x 3 MB bounds the server's memory.
+export const IMAGE_BUDGET = 3_000_000;
 const ONE_AT_A_TIME = 'Not run: the app runs one exercise at a time. Ask for it again in your next turn if you still want it.';
 
 const RUNNABLE_LESSONS = ALL_LESSONS.filter((l) => l.kind !== 'range');
@@ -107,7 +111,9 @@ export function validateLessonStart(body) {
   const context = body.context ?? null;
   if (context !== null && !isObj(context)) return { error: 'Context must be an object.' };
   if (context && JSON.stringify(context).length > LIMITS.context) return { error: 'Practice data is too large.' };
-  return { minutes, focus: focus.trim(), context };
+  const key = body.key ?? null;
+  if (key !== null && (typeof key !== 'string' || !/^[A-Za-z0-9-]{8,64}$/.test(key))) return { error: 'The lesson key must be 8–64 letters, digits or dashes.' };
+  return { minutes, focus: focus.trim(), context, key };
 }
 
 /** A base64 PNG of a sensible size (the pitch picture). */
@@ -120,6 +126,7 @@ export function validateLessonStep(body) {
   if (!isObj(body)) return { error: 'Send a JSON object.' };
   if (typeof body.id !== 'string' || !/^[a-f0-9]{32}$/.test(body.id)) return { error: 'Unknown lesson.' };
   if (!Number.isInteger(body.turn) || body.turn < 0) return { error: 'Say which turn you are answering.' };
+  if (body.usedMin != null && (!Number.isInteger(body.usedMin) || body.usedMin < 0 || body.usedMin > 600)) return { error: 'usedMin must be whole minutes.' };
   let message = '';
   if (body.message != null) {
     if (typeof body.message !== 'string' || body.message.length > LIMITS.message) return { error: `Keep messages under ${LIMITS.message} characters.` };
@@ -131,10 +138,10 @@ export function validateLessonStep(body) {
     if (!isObj(r) || !STATUSES.includes(r.status)) return { error: 'A take result needs a status of done, skipped or failed.' };
     if (r.take != null && (!isObj(r.take) || JSON.stringify(r.take).length > LIMITS.take)) return { error: 'The take summary is too large.' };
     if (r.note != null && (typeof r.note !== 'string' || r.note.length > LIMITS.note)) return { error: `Keep the note under ${LIMITS.note} characters.` };
-    if (r.image != null && !isPngBase64(r.image)) return { error: 'The pitch picture must be a PNG under 300 KB.' };
+    if (r.image != null && !isPngBase64(r.image)) return { error: 'The pitch picture must be a PNG under 150 KB.' };
     result = { status: r.status, take: r.take ?? null, note: r.note?.trim() || null, image: r.image ?? null };
   }
-  return { id: body.id, turn: body.turn, result, message };
+  return { id: body.id, turn: body.turn, result, message, usedMin: body.usedMin ?? null };
 }
 
 /** Check one exercise reference against the catalogue and what this student has unlocked. */
@@ -216,12 +223,27 @@ export function openingMessage({ minutes, focus, context }) {
   return { role: 'user', content };
 }
 
-function exerciseResult(toolUseId, r) {
+/** Base64 picture characters already kept in a transcript. */
+export function imageCharsIn(messages) {
+  let n = 0;
+  for (const m of messages || []) {
+    if (!Array.isArray(m.content)) continue;
+    for (const b of m.content) {
+      if (b?.type !== 'tool_result' || !Array.isArray(b.content)) continue;
+      for (const c of b.content) if (c?.type === 'image') n += c.source?.data?.length ?? 0;
+    }
+  }
+  return n;
+}
+
+function exerciseResult(toolUseId, r, imageRoom) {
   const data = { status: r.status };
   if (r.take) data.take = r.take;
+  const picture = Boolean(r.image) && r.status === 'done' && r.image.length <= imageRoom;
   data.note = r.note || (r.status === 'skipped' ? 'The student skipped this exercise.' : r.status === 'failed' ? 'The exercise could not run.' : undefined);
+  if (r.image && r.status === 'done' && !picture) data.note = [data.note, 'No picture this time: the lesson has used its picture budget.'].filter(Boolean).join(' ');
   const blocks = [{ type: 'text', text: JSON.stringify(data) }];
-  if (r.image && r.status === 'done') blocks.push({ type: 'image', source: { type: 'base64', media_type: 'image/png', data: r.image } });
+  if (picture) blocks.push({ type: 'image', source: { type: 'base64', media_type: 'image/png', data: r.image } });
   return { type: 'tool_result', tool_use_id: toolUseId, content: blocks, ...(r.status === 'failed' ? { is_error: true } : {}) };
 }
 
@@ -234,7 +256,7 @@ export function stepMessage(lesson, { result, message }, usedMin) {
   const p = lesson.pending;
   if (p?.name === 'start_exercise') {
     if (!result) return { error: 'Send the result of the exercise your teacher set (done, skipped or failed).' };
-    content.push(exerciseResult(p.toolUseId, result));
+    content.push(exerciseResult(p.toolUseId, result, IMAGE_BUDGET - imageCharsIn(lesson.messages)));
   } else if (p?.name === 'finish_lesson') {
     if (!message) return { error: 'The lesson is finished — send a message to ask a follow-up.' };
     content.push({ type: 'tool_result', tool_use_id: p.toolUseId, content: 'The app showed the student your recap and homework.' });
@@ -264,8 +286,8 @@ export function lessonRequest(config, messages) {
   };
 }
 
-/** One streamed Claude call; text deltas go to `send`. Re-issues once on a non-API failure. */
-async function streamOnce({ client, config, messages, signal, send, onRetry }) {
+/** One streamed Claude call; text deltas go to `send`. Re-issues once on a non-API failure, if the caps allow. */
+async function streamOnce({ client, config, messages, signal, send, onRetry, allowCall }) {
   for (let attempt = 0; ; attempt++) {
     const stream = client.beta.messages.stream(lessonRequest(config, messages), { signal });
     try {
@@ -276,7 +298,7 @@ async function streamOnce({ client, config, messages, signal, send, onRetry }) {
     } catch (err) {
       // An unparseable eagerly-streamed tool input, or a stream dropped part-way, isn't an API
       // error: re-issue the turn once. API errors (including the user aborting) go up.
-      if (err instanceof Anthropic.APIError || signal?.aborted || attempt >= 1) throw err;
+      if (err instanceof Anthropic.APIError || signal?.aborted || attempt >= 1 || !allowCall()) throw err;
       onRetry();
       send({ type: 'retry' });
     }
@@ -321,7 +343,7 @@ export async function runLessonTurn({ client, config, lesson, userMessage, signa
       // Out of calls while correcting a muddled tool call: keep what was said and owe Claude the errors.
       return commit(messages.slice(0, -1), { owed: refusedTurn, waiting: 'student' });
     }
-    const final = await streamOnce({ client, config, messages, signal, send: say, onRetry: () => (spoken = '') });
+    const final = await streamOnce({ client, config, messages, signal, send: say, onRetry: () => (spoken = ''), allowCall });
     addUsage(usage, final.usage);
     done = { stop: final.stop_reason, model: final.model, usage };
 
@@ -345,28 +367,45 @@ export async function runLessonTurn({ client, config, lesson, userMessage, signa
     refusedTurn = [{ type: 'tool_result', tool_use_id: first.id, content: checked.error, is_error: true }, ...notRun];
     // Still muddled after being corrected: keep what was said and let the student move things on.
     if (fix >= MAX_FIXES) return commit(history, { owed: refusedTurn, waiting: 'student' });
-    messages = [...history, { role: 'user', content: [...refusedTurn, { type: 'text', text: clockText(lesson.usedMin(), lesson.minutes) }] }];
+    // The browser drops this turn's text, so Claude is asked to say it all again with another exercise.
+    spoken = '';
+    send({ type: 'retry' });
+    const redo = { ...refusedTurn[0], content: `${checked.error} The student hasn't seen or heard this turn, so give your whole reply again with an exercise that can run.` };
+    messages = [...history, { role: 'user', content: [redo, ...notRun, { type: 'text', text: clockText(lesson.usedMin(), lesson.minutes) }] }];
   }
 }
 
-/** In-memory lessons, keyed by an unguessable id. Idle lessons expire; the oldest idle one makes room. */
-export function createLessonStore({ ttlMs = LESSON_TTL_MS, max = MAX_LESSONS, now = Date.now } = {}) {
+/**
+ * In-memory lessons, keyed by an unguessable id (and by the browser's start key, so a retried start
+ * finds its lesson). Idle lessons expire. When full, a finished or long-abandoned lesson makes room;
+ * a lesson still under way is never evicted: the new start is refused instead.
+ */
+export function createLessonStore({ ttlMs = LESSON_TTL_MS, abandonedMs = ABANDONED_MS, max = MAX_LESSONS, now = Date.now } = {}) {
   const lessons = new Map();
+  const byKey = new Map();
+  const remove = (l) => {
+    lessons.delete(l.id);
+    if (l.key && byKey.get(l.key) === l) byKey.delete(l.key);
+  };
   const sweep = () => {
     const t = now();
-    for (const [id, l] of lessons) if (!l.busy && t - l.lastAt > ttlMs) lessons.delete(id);
+    for (const l of [...lessons.values()]) if (!l.busy && t - l.lastAt > ttlMs) remove(l);
   };
   return {
-    create({ minutes, focus, context }) {
+    create({ minutes, focus, context, key = null }) {
       sweep();
       if (lessons.size >= max) {
-        const oldest = [...lessons.values()].filter((l) => !l.busy).sort((a, b) => a.lastAt - b.lastAt)[0];
-        if (!oldest) return null;
-        lessons.delete(oldest.id);
+        const t = now();
+        const spare = [...lessons.values()]
+          .filter((l) => !l.busy && (l.finished || t - l.lastAt > abandonedMs))
+          .sort((a, b) => Number(b.finished) - Number(a.finished) || a.lastAt - b.lastAt)[0];
+        if (!spare) return null;
+        remove(spare);
       }
       const startedAt = now();
       const lesson = {
         id: randomBytes(16).toString('hex'),
+        key,
         startedAt,
         lastAt: startedAt,
         minutes,
@@ -381,14 +420,20 @@ export function createLessonStore({ ttlMs = LESSON_TTL_MS, max = MAX_LESSONS, no
         busy: false,
         finished: false,
         lastReply: null,
-        usedMin: () => Math.round((now() - startedAt) / 60_000),
+        reportedMin: null, // minutes the browser saw the student in the lesson (time away excluded)
+        usedMin: () => lesson.reportedMin ?? Math.round((now() - startedAt) / 60_000),
       };
       lessons.set(lesson.id, lesson);
+      if (key) byKey.set(key, lesson);
       return lesson;
     },
     get(id) {
       sweep();
       return lessons.get(id) || null;
+    },
+    byKey(key) {
+      sweep();
+      return (key && byKey.get(key)) || null;
     },
     get size() {
       return lessons.size;

@@ -104,6 +104,7 @@ export function practiceView(el, _params = [], opts = {}) {
     stop: el.querySelector('#stop'),
   };
   let session = null;
+  let disposed = false; // the screen was left (perhaps while the mic permission prompt was open)
   let lastCueKind = null;
   let lastCount = null;
   let startedAt = 0;
@@ -150,7 +151,7 @@ export function practiceView(el, _params = [], opts = {}) {
       return null;
     });
     ui.start.disabled = false;
-    if (!eng) return;
+    if (!eng || disposed) return;
     opts.onStart?.();
     startTanpura();
     el.querySelector('#results').innerHTML = '';
@@ -401,6 +402,7 @@ export function practiceView(el, _params = [], opts = {}) {
   }
 
   return () => {
+    disposed = true;
     session?.stop();
     engine.guide?.stopTanpura();
     canvas.destroy();
