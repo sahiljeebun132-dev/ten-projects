@@ -8,7 +8,7 @@ Aria listens to your voice in real time and coaches you from your very first not
 cd aria-vocal-coach
 npm install        # one dependency: the official Anthropic SDK (for the talking teacher)
 npm start          # → http://localhost:5190
-npm test           # 70 tests: pitch, melody, scoring, coach, riyaaz, style learning, teacher, chat, live lessons, server security
+npm test           # 75 tests: pitch, melody, scoring, coach, riyaaz, style learning, teacher, chat, live lessons, server security
 ```
 
 Node 20+. Open the URL in Chrome/Edge and allow the microphone. **Headphones give the most accurate coaching** (the mic won't hear the guide tones or tanpura). No mic? Settings → **Demo voice** runs a simulated singer so you can try everything.
